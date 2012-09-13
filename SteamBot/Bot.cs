@@ -72,6 +72,7 @@ namespace SteamBot {
 
 		public void Update() {
 			while (true) {
+				Thread.Sleep(800);
 				CallbackMsg msg = SteamClient.GetCallback(true);
 
 				if (msg == null)
