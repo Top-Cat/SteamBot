@@ -5,12 +5,9 @@
 
 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
 using System.Diagnostics;
+using System.Linq;
 using SteamKit2.Internal;
 
 namespace SteamKit2
@@ -272,7 +269,7 @@ namespace SteamKit2
             SteamClient.PostCallback( callback );
 #else
             var innerCallback = new AppOwnershipTicketCallback( ticketResponse.Body );
-            var callback = new SteamClient.JobCallback<AppOwnershipTicketCallback>(ticketResponse.TargetJobID, innerCallback);
+            var callback = new SteamClient.JobCallback<AppOwnershipTicketCallback>( ticketResponse.TargetJobID, innerCallback );
             this.Client.PostCallback( callback );
 #endif
         }

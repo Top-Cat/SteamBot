@@ -5,14 +5,9 @@
 
 
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Net;
-using System.IO;
-using System.Threading;
-using System.Diagnostics;
 using SteamKit2.Internal;
 
 namespace SteamKit2
@@ -36,6 +31,10 @@ namespace SteamKit2
 
             cache = new AccountCache();
         }
+
+		public List<SteamID> getFriends() {
+			return friendList;
+		}
 
 
         /// <summary>

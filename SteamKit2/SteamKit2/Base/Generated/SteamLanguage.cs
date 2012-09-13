@@ -954,6 +954,8 @@ namespace SteamKit2
 		ClientGetDepotDecryptionKey = 5438,
 		ClientGetDepotDecryptionKeyResponse = 5439,
 		GSPerformHardwareSurvey = 5440,
+		ClientGetAppBetaPasswords = 5441,
+		ClientGetAppBetaPasswordsResponse = 5442,
 		ClientEnableTestLicense = 5443,
 		ClientEnableTestLicenseResponse = 5444,
 		ClientDisableTestLicense = 5445,
@@ -1077,6 +1079,12 @@ namespace SteamKit2
 		AMClientSetPlayerNicknameResponse = 5589,
 		ClientRequestOAuthTokenForApp = 5590,
 		ClientRequestOAuthTokenForAppResponse = 5591,
+		ClientGetNumberOfCurrentPlayersDP = 5592,
+		ClientGetNumberOfCurrentPlayersDPResponse = 5593,
+		ClientServiceMethod = 5594,
+		ClientServiceMethodResponse = 5595,
+		ClientFriendUserStatusPublished = 5596,
+		ClientCurrentUIMode = 5597,
 		BaseDFS = 5600,
 		DFSGetFile = 5601,
 		DFSInstallLocalFile = 5602,
@@ -1115,8 +1123,8 @@ namespace SteamKit2
 		ClientMDSGetDepotManifest = 5818,
 		ClientMDSGetDepotManifestResponse = 5819,
 		ClientMDSGetDepotManifestChunk = 5820,
-		ClientMDSDownloadDepotChunksRequest = 5823,
-		MDSDownloadDepotChunksAsync = 5824,
+		ClientMDSUploadRateTest = 5823,
+		ClientMDSUploadRateTestResponse = 5824,
 		MDSDownloadDepotChunksAck = 5825,
 		MDSContentServerStatsBroadcast = 5826,
 		MDSContentServerConfigRequest = 5827,
@@ -1844,6 +1852,23 @@ namespace SteamKit2
 	{
 		Played = 0,
 		Completed = 1,
+	}
+	public enum EEconTradeResponse
+	{
+		Accepted = 0,
+		Declined = 1,
+		VacBannedInitiator = 2,
+		VacBannedTarget = 3,
+		TargetAlreadyTrading = 4,
+		Disabled = 5,
+		NotLoggedIn = 6,
+		Cancel = 7,
+		TooSoon = 8,
+		TooSoonPenalty = 9,
+		ConnectionFailed = 10,
+		InitiatorAlreadyTrading = 11,
+		Error = 12,
+		Timeout = 13,
 	}
 	public enum EUdpPacketType : byte
 	{

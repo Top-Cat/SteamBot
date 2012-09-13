@@ -4,3 +4,9 @@ C:\Users\Jesse\Documents\GitHub\SteamBot\protobuf-net\protobuf-net\bin\Debug\pro
 C:\Users\Jesse\Documents\GitHub\SteamBot\protobuf-net\protobuf-net\bin\Debug\protobuf-net.pdb
 C:\Users\Jesse\Documents\GitHub\SteamBot\protobuf-net\protobuf-net\obj\Debug\protobuf-net.dll
 C:\Users\Jesse\Documents\GitHub\SteamBot\protobuf-net\protobuf-net\obj\Debug\protobuf-net.pdb
+D:\Thomas\Documents\SteamBot\protobuf-net\protobuf-net\bin\Debug\Licence.txt
+D:\Thomas\Documents\SteamBot\protobuf-net\protobuf-net\bin\Debug\protobuf-net.xml
+D:\Thomas\Documents\SteamBot\protobuf-net\protobuf-net\bin\Debug\protobuf-net.dll
+D:\Thomas\Documents\SteamBot\protobuf-net\protobuf-net\bin\Debug\protobuf-net.pdb
+D:\Thomas\Documents\SteamBot\protobuf-net\protobuf-net\obj\Debug\protobuf-net.dll
+D:\Thomas\Documents\SteamBot\protobuf-net\protobuf-net\obj\Debug\protobuf-net.pdb

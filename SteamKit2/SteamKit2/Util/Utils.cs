@@ -6,13 +6,11 @@
 
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Management;
 using System.Net;
 using System.Net.Sockets;
-using System.Net.NetworkInformation;
-using System.Management;
+using System.Text;
 
 namespace SteamKit2
 {
@@ -274,14 +272,13 @@ namespace SteamKit2
 
     public static class WebHelpers
     {
-        public static string EncodeBase64(string toString)
-        {
-            byte[] toEncodeAsBytes
-                  = System.Text.ASCIIEncoding.ASCII.GetBytes(toString);
-            string returnValue
-                  = System.Convert.ToBase64String(toEncodeAsBytes);
-            return returnValue;
-        }
+		public static string EncodeBase64(string toString) {
+			byte[] toEncodeAsBytes
+				  = System.Text.ASCIIEncoding.ASCII.GetBytes(toString);
+			string returnValue
+				  = System.Convert.ToBase64String(toEncodeAsBytes);
+			return returnValue;
+		}
 
         static bool IsUrlSafeChar( char ch )
         {

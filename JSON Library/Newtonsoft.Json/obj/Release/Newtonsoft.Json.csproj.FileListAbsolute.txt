@@ -1,0 +1,6 @@
+D:\Thomas\Documents\SteamBot\JSON Library\Newtonsoft.Json\bin\Release\Net40\Newtonsoft.Json.xml
+D:\Thomas\Documents\SteamBot\JSON Library\Newtonsoft.Json\bin\Release\Net40\Newtonsoft.Json.dll
+D:\Thomas\Documents\SteamBot\JSON Library\Newtonsoft.Json\bin\Release\Net40\Newtonsoft.Json.pdb
+D:\Thomas\Documents\SteamBot\JSON Library\Newtonsoft.Json\obj\Release\Newtonsoft.Json.csprojResolveAssemblyReference.cache
+D:\Thomas\Documents\SteamBot\JSON Library\Newtonsoft.Json\obj\Release\Newtonsoft.Json.dll
+D:\Thomas\Documents\SteamBot\JSON Library\Newtonsoft.Json\obj\Release\Newtonsoft.Json.pdb

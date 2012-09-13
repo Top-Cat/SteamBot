@@ -1,17 +1,17 @@
 using System;
 using System.Threading;
+using SteamBot.util;
+using System.Collections.Generic;
+using SteamKit2;
 
-namespace SteamBot
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
+namespace SteamBot {
+    public class Program {
+		public static List<SteamID> bots = new List<SteamID>();
+        public static void Main(string[] args) {
 			Configuration config = Configuration.LoadConfiguration("settings.json");
 
 			byte counter = 0;
-            foreach (Configuration.BotInfo info in config.Bots)
-            {
+            foreach (Configuration.BotInfo info in config.Bots) {
                 Console.WriteLine("Launching bot " + counter++);
                 new Thread(() =>
                 {

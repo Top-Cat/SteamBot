@@ -1,11 +1,18 @@
+﻿/*
+ * This file is subject to the terms and conditions defined in
+ * file 'license.txt', which is part of this source code package.
+ */
+
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using SteamKit2.Internal;
-using System.Diagnostics;
 
 namespace SteamKit2
 {
     /// <summary>
-    /// This handler is used to handle trading-related queries from Steam.
+    /// This handler is used for initializing Steam trades with other clients.
     /// </summary>
     public sealed partial class SteamTrading : ClientMsgHandler
     {
@@ -13,125 +20,110 @@ namespace SteamKit2
         {
         }
 
+
         /// <summary>
-        /// Requests a trade with another Steam account.
-        /// Results are returned in <see cref="SteamTrading.TradeRequestCallback"/>.
+        /// Proposes a trade to another client.
         /// </summary>
-        /// <param name="target">The target account you want to trade with.</param>
-        public void RequestTrade(SteamID target)
+        /// <param name="user">The client to trade.</param>
+        public void Trade( SteamID user )
         {
-            var requestTrade = new ClientMsgProtobuf<CMsgTrading_InitiateTradeRequest>( EMsg.EconTrading_InitiateTradeRequest );
+            var tradeReq = new ClientMsgProtobuf<CMsgTrading_InitiateTradeRequest>( EMsg.EconTrading_InitiateTradeRequest );
 
-            requestTrade.Body.trade_request_id = 0;
-            requestTrade.Body.other_steamid = target;
-            requestTrade.Body.other_name = null;
+            tradeReq.Body.other_steamid = user;
 
-            this.Client.Send(requestTrade);
+            Client.Send( tradeReq );
         }
 
         /// <summary>
-        /// Responds to a trade request from another Steam account.
-        /// If the trade is accepted, a <see cref="SteamTrading.StartSessionCallback"/> will be received.
+        /// Responds to a trade proposal.
         /// </summary>
-        /// <param name="target">The target account you want to trade with.</param>
-        public void RespondTradeRequest(UInt32 tradeRequestId, SteamID otherId, bool accept)
+        /// <param name="tradeId">The trade id of the received proposal.</param>
+        /// <param name="acceptTrade">if set to <c>true</c>, the trade will be accepted.</param>
+        public void RespondToTrade( uint tradeId, bool acceptTrade )
         {
-            var responseTrade = new ClientMsgProtobuf<CMsgTrading_InitiateTradeResponse>(EMsg.EconTrading_InitiateTradeRequest);
+            var tradeResp = new ClientMsgProtobuf<CMsgTrading_InitiateTradeResponse>( EMsg.EconTrading_InitiateTradeResponse );
 
-            responseTrade.Body.trade_request_id = tradeRequestId;
-            responseTrade.Body.other_steamid = otherId;
-            responseTrade.Body.response = accept ? 0u : 1u;
+            tradeResp.Body.trade_request_id = tradeId;
+            tradeResp.Body.response = acceptTrade ? 0u : 1u;
 
-            this.Client.Send(responseTrade);
+            Client.Send( tradeResp );
         }
 
         /// <summary>
-        /// Cancels a pending trade request.
+        /// Cancels an already sent trade proposal.
         /// </summary>
-        /// <param name="target">The target account you want to trade with.</param>
-        public void CancelPendingTrade(SteamID target)
+        /// <param name="user">The user.</param>
+        public void CancelTrade( SteamID user )
         {
             var cancelTrade = new ClientMsgProtobuf<CMsgTrading_CancelTradeRequest>( EMsg.EconTrading_CancelTradeRequest );
 
-            cancelTrade.Body.other_steamid = target;
+            cancelTrade.Body.other_steamid = user;
 
-            this.Client.Send(cancelTrade);
+            Client.Send( cancelTrade );
         }
+
 
         /// <summary>
         /// Handles a client message. This should not be called directly.
         /// </summary>
         /// <param name="packetMsg">The packet message that contains the data.</param>
-        public override void HandleMsg(IPacketMsg packetMsg)
+        public override void HandleMsg( IPacketMsg packetMsg )
         {
-            switch (packetMsg.MsgType)
+            switch ( packetMsg.MsgType )
             {
                 case EMsg.EconTrading_InitiateTradeProposed:
-                    HandleInitiateTradeProposed(packetMsg);
+                    HandleTradeProposed( packetMsg );
                     break;
+
                 case EMsg.EconTrading_InitiateTradeResult:
-                    HandleInitiateTradeResult(packetMsg);
+                    HandleTradeResult( packetMsg );
                     break;
+
                 case EMsg.EconTrading_StartSession:
-                    HandleStartSession(packetMsg);
+                    HandleStartSession( packetMsg );
                     break;
             }
         }
 
+
         #region ClientMsg Handlers
-
-        void HandleInitiateTradeResult(IPacketMsg packetMsg)
+        void HandleTradeProposed( IPacketMsg packetMsg )
         {
-            var msg = new ClientMsgProtobuf<CMsgTrading_InitiateTradeResult>(packetMsg);
+            var tradeProp = new ClientMsgProtobuf<CMsgTrading_InitiateTradeRequest>( packetMsg );
 
-            var callback = new TradeRequestCallback();
-            callback.Response = msg.Body.response;
-            callback.TradeRequestId = msg.Body.trade_request_id;
-            callback.Other = msg.Body.other_steamid;
-
-            if (callback.Response == 0)
-                callback.Status = ETradeStatus.Accepted;
-            else if (callback.Response == 1)
-                callback.Status = ETradeStatus.Rejected;
-			else if (callback.Response == 6)
-				callback.Status = ETradeStatus.Unknown;
-            else if (callback.Response == 7)
-                callback.Status = ETradeStatus.Cancelled;
-            else if (callback.Response == 8)
-                callback.Status = ETradeStatus.Unknown;
-            else if (callback.Response == 11)
-                callback.Status = ETradeStatus.InTrade;
-            else if (callback.Response == 12)
-                callback.Status = ETradeStatus.Unknown2;
-            else if (callback.Response == 13)
-                callback.Status = ETradeStatus.TimedOut;
-            else
-                throw new Exception("Unknown trade status: "+callback.Status);
-
-            this.Client.PostCallback(callback);
+#if STATIC_CALLBACKS
+            var callback = new TradeProposedCallback( Client, tradeProp.Body );
+            SteamClient.PostCallback( callback );
+#else
+            var callback = new TradeProposedCallback( tradeProp.Body );
+            Client.PostCallback( callback );
+#endif
         }
-
-        void HandleStartSession(IPacketMsg packetMsg)
+        void HandleTradeResult( IPacketMsg packetMsg )
         {
-            var msg = new ClientMsgProtobuf<CMsgTrading_StartSession>(packetMsg);
+            var tradeResult = new ClientMsgProtobuf<CMsgTrading_InitiateTradeResponse>( packetMsg );
 
-            var callback = new TradeStartSessionCallback();
-            callback.Other = msg.Body.other_steamid;
-
-            this.Client.PostCallback(callback);
+#if STATIC_CALLBACKS
+            var callback = new TradeResultCallback( Client, tradeResult.Body );
+            SteamClient.PostCallback( callback );
+#else
+            var callback = new TradeResultCallback( tradeResult.Body );
+            Client.PostCallback( callback );
+#endif
         }
-
-        void HandleInitiateTradeProposed(IPacketMsg packetMsg)
+        void HandleStartSession( IPacketMsg packetMsg )
         {
-            var msg = new ClientMsgProtobuf<CMsgTrading_InitiateTradeProposed>(packetMsg);
+            var startSess = new ClientMsgProtobuf<CMsgTrading_StartSession>( packetMsg );
 
-            var callback = new TradeProposedCallback();
-            callback.TradeRequestId = msg.Body.trade_request_id;
-            callback.Other = msg.Body.other_steamid;
-
-            this.Client.PostCallback(callback);
+#if STATIC_CALLBACKS
+            var callback = new SessionStartCallback( Client, startSess.Body );
+            SteamClient.PostCallback( callback );
+#else
+            var callback = new SessionStartCallback( startSess.Body );
+            Client.PostCallback( callback );
+#endif
         }
-
         #endregion
+
     }
 }

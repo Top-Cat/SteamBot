@@ -9,6 +9,21 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>SteamBot</RootNamespace>
     <AssemblyName>SteamBot</AssemblyName>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,17 +57,39 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Bot.cs" />
+    <Compile Include="command\CheckInv.cs" />
+    <Compile Include="command\Command.cs" />
+    <Compile Include="command\CommandInfo.cs" />
+    <Compile Include="command\Commands.cs" />
+    <Compile Include="command\Quote.cs" />
+    <Compile Include="command\Tell.cs" />
+    <Compile Include="command\Missing.cs" />
+    <Compile Include="command\Say.cs" />
+    <Compile Include="command\Unknown.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="Inventory.cs" />
+    <Compile Include="ItemInfo.cs" />
+    <Compile Include="MutableInt.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="scrap\ExchangeTrade.cs" />
+    <Compile Include="scrap\ScrapTrade.cs" />
+    <Compile Include="scrap\QueueHandler.cs" />
     <Compile Include="SteamWeb.cs" />
-    <Compile Include="TradeSystem.cs" />
+    <Compile Include="Trade.cs" />
     <Compile Include="InvBackpack.cs" />
+    <Compile Include="util\Util.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\JSON Library\Newtonsoft.Json\Newtonsoft.Json.csproj">
       <Project>{A9AE40FF-1A21-414A-9FE7-3BE13644CC6D}</Project>
       <Name>Newtonsoft.Json</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Mysql\Source\MySql.Data\MySql.Data.csproj">
+      <Project>{e9df5ed1-4cbd-4226-b931-9a51610ac14d}</Project>
+      <Name>MySql.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\protobuf-net\protobuf-net\protobuf-net.csproj">
       <Project>{8374E4D7-2A91-48F1-9360-09B09CF27C3F}</Project>
@@ -62,5 +99,36 @@
       <Project>{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}</Project>
       <Name>SteamKit2</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.4.5">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 4.5</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="schema440-en_US.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="util\Sql.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="settings.json" />
   </ItemGroup>
 </Project>

@@ -7,11 +7,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
-using System.Diagnostics;
 using System.Net;
-using System.Threading;
 using System.Net.Sockets;
 
 namespace SteamKit2.Internal
@@ -80,11 +77,9 @@ namespace SteamKit2.Internal
         /// <value>The SteamID.</value>
         public SteamID SteamID { get; private set; }
 
-
-        int serverNum = 0;
-
         Connection connection;
         byte[] tempSessionKey;
+        bool encrypted;
 
         ScheduledFunction heartBeatFunc;
 
@@ -119,13 +114,12 @@ namespace SteamKit2.Internal
 
             connection.NetMsgReceived += NetMsgReceived;
             connection.Disconnected += Disconnected;
-
+            connection.Connected += Connected;
             heartBeatFunc = new ScheduledFunction( () =>
             {
                 Send( new ClientMsgProtobuf<CMsgClientHeartBeat>( EMsg.ClientHeartBeat ) );
             } );
         }
-
 
         /// <summary>
         /// Connects this client to a Steam3 server.
@@ -139,37 +133,16 @@ namespace SteamKit2.Internal
         public void Connect( bool bEncrypted = true )
         {
             this.Disconnect();
+            encrypted = bEncrypted;
 
-            // for now we'll cycle through bootstrap CM servers
-            // todo: cache off CM servers given by the CM
-            // and add logic to determine "bad" servers
-            int serverToTry = ( serverNum++ % Servers.Length );
-            var server = Servers[ serverToTry ];
+            Random random = new Random();
 
+            var server = Servers[ random.Next( Servers.Length ) ];
             var endPoint = new IPEndPoint( server, bEncrypted ? PortCM_PublicEncrypted : PortCM_Public );
 
-            try
-            {
-                connection.Connect( endPoint );
-            }
-            catch ( SocketException ex )
-            {
-                DebugLog.WriteLine( "CMClient", "Unable to connect to CM, will try next in list: {0}", ex.ToString() );
-
-                // post disconnection callback
-                OnClientDisconnected();
-                return;
-            }
-
-            if ( !bEncrypted )
-            {
-                // we only connect to the public universe
-                ConnectedUniverse = EUniverse.Public;
-
-                // since there is no encryption handshake, we're 'connected' after the underlying connection is established
-                OnClientConnected();
-            }
+            connection.Connect( endPoint );
         }
+
         /// <summary>
         /// Disconnects this client.
         /// </summary>
@@ -277,6 +250,20 @@ namespace SteamKit2.Internal
         {
             OnClientMsgReceived( GetPacketMsg( e.Data ) );
         }
+
+        void Connected(object sender, EventArgs e)
+        {
+            // If we're on an encrypted connection, we wait for the handshake to complete
+            if ( encrypted )
+                return;
+
+            // we only connect to the public universe
+            ConnectedUniverse = EUniverse.Public;
+
+            // since there is no encryption handshake, we're 'connected' after the underlying connection is established
+            OnClientConnected();
+        }
+
         void Disconnected( object sender, EventArgs e )
         {
             ConnectedUniverse = EUniverse.Invalid;

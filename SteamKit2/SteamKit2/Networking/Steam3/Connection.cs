@@ -6,12 +6,8 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net.Sockets;
-using System.Net;
 using System.Diagnostics;
-using System.IO;
+using System.Net;
 
 namespace SteamKit2
 {
@@ -73,6 +69,16 @@ namespace SteamKit2
         {
             if ( NetMsgReceived != null )
                 NetMsgReceived( this, e );
+        }
+
+        /// <summary>
+        /// Occurs when the physical connection is established.
+        /// </summary>
+        public event EventHandler Connected;
+        protected void OnConnected(EventArgs e)
+        {
+            if (Connected != null)
+                Connected(this, e);
         }
 
         /// <summary>

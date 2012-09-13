@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Net;
 using Newtonsoft.Json;
 using SteamKit2;
+using SteamBot.util;
 
 namespace SteamBot
 {
@@ -13,7 +14,6 @@ namespace SteamBot
 		// Static properties
 		public static string SteamCommunityDomain = "steamcommunity.com";
 		public static string SteamTradeUrl = "http://steamcommunity.com/trade/{0}/";
-		public static Schema CurrentSchema = null;
 
 		protected static void PrintConsole (String line, ConsoleColor color = ConsoleColor.White)
 		{
@@ -24,8 +24,8 @@ namespace SteamBot
 		#endregion
 
 		#region Properties
-		public SteamID MeSID;
-		public SteamID OtherSID;
+		public SteamID meSID;
+		public SteamID otherSID;
 
 		// Generic Trade info
 		public bool MeReady = false;
@@ -35,12 +35,17 @@ namespace SteamBot
 		public DateTime TradeStart;
 		public DateTime LastAction;
 
-		public int MaximumTradeTime = 180;
+		int lastEvent = 0;
+		public string pollLock2 = "";
+		private byte exc = 0;
+
+		public int MaximumTradeTime = 300;
 		public int MaximumActionGap = 30;
 
 		// Items
-		public List<ulong> MyOfferedItems = new List<ulong> ();
-		public List<ulong> OtherOfferedItems = new List<ulong> ();
+		public List<ulong> MyTrade = new List<ulong>();
+		public List<ulong> OtherTrade = new List<ulong>();
+		public List<ulong>[] trades;
 
 		public Inventory OtherInventory;
 		public Inventory MyInventory;
@@ -54,8 +59,8 @@ namespace SteamBot
 		protected int logpos;
 		protected int numEvents;
 
-		protected dynamic OtherItems;
-		protected dynamic MyItems;
+		public dynamic OtherItems;
+		public dynamic MyItems;
 		#endregion
 
 		#region Events
@@ -68,10 +73,10 @@ namespace SteamBot
 		public delegate void SuccessfulInit ();
 		public event SuccessfulInit OnAfterInit;
 
-		public delegate void UserAddItemHandler (Schema.Item schemaItem, Inventory.Item inventoryItem);
+		public delegate void UserAddItemHandler(ItemInfo schemaItem, Inventory.Item inventoryItem);
 		public event UserAddItemHandler OnUserAddItem;
 
-		public delegate void UserRemoveItemHandler (Schema.Item schemaItem, Inventory.Item inventoryItem);
+		public delegate void UserRemoveItemHandler(ItemInfo schemaItem, Inventory.Item inventoryItem);
 		public event UserAddItemHandler OnUserRemoveItem;
 
 		public delegate void MessageHandler (string msg);
@@ -82,12 +87,16 @@ namespace SteamBot
 
 		public delegate void UserAcceptHandler ();
 		public event UserAcceptHandler OnUserAccept;
+
+		public delegate void NewVersionHandler();
+		public event NewVersionHandler OnNewVersion;
 		#endregion
 
-		public Trade (SteamID me, SteamID other, string sessionId, string token, string apiKey, TradeListener listener = null)
-		{
-			MeSID = me;
-			OtherSID = other;
+		public Trade (SteamID me, SteamID other, string sessionId, string token, string apiKey, TradeListener listener = null) {
+			meSID = me;
+			otherSID = other;
+
+			trades = new List<ulong>[] { MyTrade, OtherTrade };
 
 			this.sessionId = sessionId;
 			steamLogin = token;
@@ -95,7 +104,7 @@ namespace SteamBot
 
 			AddListener (listener);
 
-			baseTradeURL = String.Format (SteamTradeUrl, OtherSID.ConvertToUInt64 ());
+			baseTradeURL = String.Format (SteamTradeUrl, otherSID.ConvertToUInt64 ());
 
 			// try to poll for the first time
 			try {
@@ -109,32 +118,27 @@ namespace SteamBot
 
 			try {
 				// fetch the other player's inventory
-				OtherItems = GetInventory (OtherSID);
+				OtherItems = GetInventory (otherSID);
 				if (OtherItems == null || OtherItems.success != "true") {
 					throw new Exception ("Could not fetch other player's inventory via Trading!");
 				}
 
 				// fetch our inventory
-				MyItems = GetInventory (MeSID);
+				MyItems = GetInventory (meSID);
 				if (MyItems == null || MyItems.success != "true") {
 					throw new Exception ("Could not fetch own inventory via Trading!");
 				}
 
 				// fetch other player's inventory from the Steam API.
-				OtherInventory = Inventory.FetchInventory(OtherSID.ConvertToUInt64(), apiKey);
+				OtherInventory = Inventory.FetchInventory(otherSID.ConvertToUInt64(), apiKey);
 				if (OtherInventory == null) {
 					throw new Exception ("Could not fetch other player's inventory via Steam API!");
 				}
 
 				// fetch our inventory from the Steam API.
-				MyInventory = Inventory.FetchInventory(MeSID.ConvertToUInt64(), apiKey);
+				MyInventory = Inventory.FetchInventory(meSID.ConvertToUInt64(), apiKey);
 				if (MyInventory == null) {
 					throw new Exception ("Could not fetch own inventory via Steam API!");
-				}
-
-				// check that the schema was already successfully fetched
-				if (CurrentSchema == null) {
-					throw new Exception ("It seems the item schema was not fetched correctly!");
 				}
 
 				if (OnAfterInit != null)
@@ -148,139 +152,115 @@ namespace SteamBot
 
 		}
 
-		public void Poll ()
-		{
-			if (!tradeStarted) {
-				tradeStarted = true;
-				TradeStart = DateTime.Now;
-				LastAction = DateTime.Now;
-			}
+		public void Poll () {
+			lock (pollLock2) {
+				if (!tradeStarted) {
+					tradeStarted = true;
+					TradeStart = DateTime.Now;
+					LastAction = DateTime.Now;
+				}
 
 
-			StatusObj status = GetStatus ();
+				StatusObj status = GetStatus();
+				bool isBot = true;
 
-			if (status.events != null && numEvents != status.events.Length) {
-				int numLoops = status.events.Length - numEvents;
-				numEvents = status.events.Length;
+				if (status != null && status.events != null) {
+					if (lastEvent < status.events.Length) {
+						for (; lastEvent < status.events.Length; lastEvent++) {
+							TradeEvent evt = status.events[lastEvent];
+							isBot = evt.steamid != otherSID.ConvertToUInt64().ToString();
 
-				for (int i = numLoops; i > 0; i--) {
+							switch (evt.action) {
+								case 0:
+									trades[isBot ? 0 : 1].Add(evt.assetid);
+									if (!isBot) {
+										Inventory.Item item = OtherInventory.GetItem(evt.assetid);
+										ItemInfo schemaItem = Util.getItemInfo(item.Defindex);
+										OnUserAddItem(schemaItem, item);
+									}
+									break;
+								case 1:
+									trades[isBot ? 0 : 1].Remove(evt.assetid);
+									if (!isBot) {
+										Inventory.Item item = OtherInventory.GetItem(evt.assetid);
+										ItemInfo schemaItem = Util.getItemInfo(item.Defindex);
+										OnUserRemoveItem(schemaItem, item);
+									}
+									break;
+								case 2:
+									if (!isBot) {
+										OtherReady = true;
+										OnUserSetReady(true);
+									} else {
+										MeReady = true;
+									}
+									break;
+								case 3:
+									if (!isBot) {
+										OtherReady = false;
+										OnUserSetReady(false);
+									} else {
+										MeReady = false;
+									}
+									break;
+								case 4:
+									if (!isBot) {
+										OnUserAccept();
+									}
+									break;
+								case 7:
+									if (!isBot) {
+										OnMessage(evt.text);
+									}
+									break;
+								default:
+									PrintConsole("Unknown Event ID: " + evt.action, ConsoleColor.Red);
+									break;
+							}
 
-					int EventID;
+							if (!isBot)
+								LastAction = DateTime.Now;
+						}
 
-					if (numLoops == 1) {
-						EventID = numEvents - 1;
 					} else {
-						EventID = numEvents - i;
+						// check if the user is AFK
+						var now = DateTime.Now;
+
+						DateTime actionTimeout = LastAction.AddSeconds(MaximumActionGap);
+						int untilActionTimeout = (int) Math.Round((actionTimeout - now).TotalSeconds);
+
+						DateTime tradeTimeout = TradeStart.AddSeconds(MaximumTradeTime);
+						int untilTradeTimeout = (int) Math.Round((tradeTimeout - now).TotalSeconds);
+
+						if (untilActionTimeout <= 0 || untilTradeTimeout <= 0) {
+							if (OnTimeout != null)
+								OnTimeout();
+						} else if (untilActionTimeout <= 15 && untilActionTimeout % 5 == 0) {
+							SendMessage("Are You AFK? The trade will be canceled in " + untilActionTimeout + " seconds if you don't do something.");
+						}
 					}
-
-					bool isBot = status.events [EventID].steamid == MeSID.ConvertToUInt64 ().ToString ();
-
-					/*
-			         *
-			         * Trade Action ID's
-			         *
-			         * 0 = Add item (itemid = "assetid")
-			         * 1 = remove item (itemid = "assetid")
-			         * 2 = Toggle ready
-			         * 3 = Toggle not ready
-			         * 4
-			         * 5
-			         * 6
-			         * 7 = Chat (message = "text")
-			         *
-			         */
-					ulong itemID;
-
-					switch (status.events [EventID].action) {
-					case 0:
-						itemID = (ulong)status.events [EventID].assetid;
-
-						if (isBot)
-							MyOfferedItems.Add (itemID);
-						else {
-							OtherOfferedItems.Add (itemID);
-							Inventory.Item item = OtherInventory.GetItem (itemID);
-							Schema.Item schemaItem = CurrentSchema.GetItem (item.Defindex);
-							OnUserAddItem (schemaItem, item);
-						}
-
-						break;
-					case 1:
-						itemID = (ulong)status.events [EventID].assetid;
-
-						if (isBot)
-							MyOfferedItems.Remove (itemID);
-						else {
-							OtherOfferedItems.Remove (itemID);
-							Inventory.Item item = OtherInventory.GetItem (itemID);
-							Schema.Item schemaItem = CurrentSchema.GetItem (item.Defindex);
-							OnUserRemoveItem (schemaItem, item);
-						}
-
-						break;
-					case 2:
-						if (!isBot) {
-							OtherReady = true;
-							OnUserSetReady (true);
-						}
-						break;
-					case 3:
-						if (!isBot) {
-							OtherReady = false;
-							OnUserSetReady (false);
-						}
-						break;
-					case 4:
-						if (!isBot) {
-							OnUserAccept ();
-						}
-						break;
-					case 7:
-						if (!isBot) {
-							OnMessage (status.events [EventID].text);
-						}
-						break;
-					default:
-						PrintConsole ("Unknown Event ID: " + status.events [EventID].action, ConsoleColor.Red);
-						break;
+				} else {
+					if (++exc >= 3) {
+						OnError("Trade cancelled");
 					}
-
-					if (!isBot)
-						LastAction = DateTime.Now;
 				}
 
-			} else {
-				// check if the user is AFK
-				var now = DateTime.Now;
-
-				DateTime actionTimeout = LastAction.AddSeconds (MaximumActionGap);
-				int untilActionTimeout = (int) Math.Round ((actionTimeout - now).TotalSeconds);
-
-				DateTime tradeTimeout = TradeStart.AddSeconds (MaximumTradeTime);
-				int untilTradeTimeout = (int) Math.Round ((tradeTimeout - now).TotalSeconds);
-
-				if (untilActionTimeout <= 0 || untilTradeTimeout <= 0) {
-					if (OnTimeout != null)
-						OnTimeout();
-				} else if (untilActionTimeout <= 15 && untilActionTimeout % 5 == 0) {
-					SendMessage ("Are You AFK? The trade will be canceled in " + untilActionTimeout + " seconds if you don't do something.");
+				// Update Local Variables
+				if (status.them != null) {
+					OtherReady = status.them.ready == 1 ? true : false;
+					MeReady = status.me.ready == 1 ? true : false;
 				}
-			}
-		
-			// Update Local Variables
-			if (status.them != null) {
-				OtherReady = status.them.ready == 1 ? true : false;
-				MeReady = status.me.ready == 1 ? true : false;
-			}
 
 
-			// Update version
-			if (status.newversion) {
-				version = status.version;
-			}
+				// Update version
+				if (status.newversion) {
+					version = status.version;
+					OnNewVersion();
+				}
 
-			if (status.logpos != 0) {
-				logpos = status.logpos;
+				if (status.logpos != 0) {
+					logpos = status.logpos;
+				}
 			}
 		}
 
@@ -299,13 +279,13 @@ namespace SteamBot
 		{
 			List<Inventory.Item> items = MyInventory.GetItemsByDefindex (defindex);
 			if (items[0] != null) {
-				AddItem (items[0].Id, slot);
+				addItem (items[0].Id, slot);
 				return true;
 			}
 			return false;
 		}
 
-		public void AddItem (ulong itemid, int slot)
+		public void addItem (ulong itemid, int slot)
 		{
 			var data = new NameValueCollection ();
 			data.Add ("sessionid", Uri.UnescapeDataString (sessionId));
@@ -316,14 +296,13 @@ namespace SteamBot
 			Fetch (baseTradeURL + "additem", "POST", data);
 		}
 
-		public void RemoveItem (ulong itemid, int slot)
+		public void removeItem (ulong itemid)
 		{
 			var data = new NameValueCollection ();
 			data.Add ("sessionid", Uri.UnescapeDataString (sessionId));
 			data.Add ("appid", "440");
 			data.Add ("contextid", "2");
 			data.Add ("itemid", "" + itemid);
-			data.Add ("slot", "" + slot);
 			Fetch (baseTradeURL + "removeitem", "POST", data);
 		}
 
@@ -357,6 +336,7 @@ namespace SteamBot
 			OnMessage += listener.OnMessage;
 			OnUserSetReady += listener.OnUserSetReadyState;
 			OnUserAccept += listener.OnUserAccept;
+			OnNewVersion += listener.OnNewVersion;
 			listener.trade = this;
 		}
 
@@ -408,15 +388,17 @@ namespace SteamBot
 
 			public abstract void OnAfterInit ();
 
-			public abstract void OnUserAddItem (Schema.Item schemaItem, Inventory.Item inventoryItem);
+			public abstract void OnUserAddItem(ItemInfo schemaItem, Inventory.Item inventoryItem);
 
-			public abstract void OnUserRemoveItem (Schema.Item schemaItem, Inventory.Item inventoryItem);
+			public abstract void OnUserRemoveItem(ItemInfo schemaItem, Inventory.Item inventoryItem);
 
 			public abstract void OnMessage (string msg);
 
 			public abstract void OnUserSetReadyState (bool ready);
 
 			public abstract void OnUserAccept ();
+
+			public abstract void OnNewVersion();
 		}
 
 		#region JSON classes
@@ -467,7 +449,6 @@ namespace SteamBot
 			public int sec_since_touch { get; set; }
 		}
 		#endregion
-
 	}
 }
 

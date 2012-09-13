@@ -7,11 +7,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Net.Sockets;
 using System.Threading;
 using SteamKit2.Internal;
-using System.Net.Sockets;
 
 namespace SteamKit2
 {
@@ -64,7 +62,7 @@ namespace SteamKit2
             this.AddHandler( new SteamMasterServer() );
             this.AddHandler( new SteamCloud() );
             this.AddHandler( new SteamWorkshop() );
-			this.AddHandler( new SteamTrading() );
+            this.AddHandler( new SteamTrading() );
         }
 
 

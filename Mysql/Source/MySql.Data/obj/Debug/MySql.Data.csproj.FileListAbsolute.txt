@@ -1,0 +1,7 @@
+D:\Thomas\Documents\SteamBot\Mysql\Source\MySql.Data\obj\Debug\MySql.Data.csprojResolveAssemblyReference.cache
+D:\Thomas\Documents\SteamBot\Mysql\Source\MySql.Data\obj\Debug\MySql.Data.MySqlClient.Properties.Resources.resources
+D:\Thomas\Documents\SteamBot\Mysql\Source\MySql.Data\obj\Debug\MySql.Data.csproj.GenerateResource.Cache
+D:\Thomas\Documents\SteamBot\Mysql\Source\MySql.Data\bin\Debug\MySql.Data.dll
+D:\Thomas\Documents\SteamBot\Mysql\Source\MySql.Data\bin\Debug\MySql.Data.pdb
+D:\Thomas\Documents\SteamBot\Mysql\Source\MySql.Data\obj\Debug\MySql.Data.dll
+D:\Thomas\Documents\SteamBot\Mysql\Source\MySql.Data\obj\Debug\MySql.Data.pdb

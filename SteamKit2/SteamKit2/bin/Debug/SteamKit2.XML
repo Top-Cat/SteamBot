@@ -1309,91 +1309,121 @@
             The source job id.
             </value>
         </member>
-        <member name="T:SteamKit2.Blob.BlobReader">
+        <member name="T:SteamKit2.Blob.BlobFieldAttribute">
             <summary>
-            Represents the base blob reader that can process a binary blob.
+            Attribute that holds the key for a Blob field
             </summary>
         </member>
-        <member name="M:SteamKit2.Blob.BlobReader.#ctor(System.IO.Stream)">
+        <member name="M:SteamKit2.Blob.BlobFieldAttribute.#ctor(System.String)">
             <summary>
-            Initializes a new instance of the <see cref="T:SteamKit2.Blob.BlobReader"/> class.
+            Constructs a field key with a string
             </summary>
-            <param name="input">The input stream to process.</param>
+            <param name="key">Key string</param>
+        </member>
+        <member name="M:SteamKit2.Blob.BlobFieldAttribute.#ctor(System.Int32)">
+            <summary>
+            Constructs a field key with an integer
+            </summary>
+            <param name="key">Integer key</param>
+        </member>
+        <member name="P:SteamKit2.Blob.BlobFieldAttribute.ByteKey">
+            <summary>
+            Byte Key represented by this field
+            </summary>
+        </member>
+        <member name="P:SteamKit2.Blob.BlobFieldAttribute.PeekIntKey">
+            <summary>
+            Peekable int key for this field
+            </summary>
+        </member>
+        <member name="T:SteamKit2.Blob.BlobReader">
+            <summary>
+            BlobReader that sequentially reads a blob
+            </summary>
+        </member>
+        <member name="M:SteamKit2.Blob.BlobReader.CreateFrom(System.String)">
+            <summary>
+            Create a new BlobReader from a file path
+            </summary>
+            <param name="fileName">Path to blob</param>
+            <returns></returns>
+        </member>
+        <member name="M:SteamKit2.Blob.BlobReader.CreateFrom(System.IO.Stream)">
+            <summary>
+            Create a BlobReader from a Stream. Does not take ownership of the Stream.
+            </summary>
+            <param name="inputSteam">Source</param>
+            <returns></returns>
         </member>
         <member name="M:SteamKit2.Blob.BlobReader.Dispose">
             <summary>
-            Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+            Dispose the BlobReader, releasing any Streams allocated.
             </summary>
         </member>
-        <member name="M:SteamKit2.Blob.BlobReader.Create(System.IO.Stream)">
+        <member name="M:SteamKit2.Blob.BlobReader.ReadFieldHeader">
             <summary>
-            Creates a new instance of a <see cref="T:SteamKit2.Blob.BlobReader"/> for the given input stream.
-            </summary>
-            <param name="inputStream">The input stream to process.</param>
-            <returns>A new <see cref="T:SteamKit2.Blob.BlobReader"/> instance.</returns>
-        </member>
-        <member name="M:SteamKit2.Blob.BlobReader.Create(System.String)">
-            <summary>
-            Creates a new instance of a <see cref="T:SteamKit2.Blob.BlobReader"/> for the given input file.
-            </summary>
-            <param name="fileName">The input file to process.</param>
-            <returns>A new <see cref="T:SteamKit2.Blob.BlobReader"/> instance.</returns>
-        </member>
-        <member name="M:SteamKit2.Blob.BlobReader.SetKey(System.Byte[])">
-            <summary>
-            Sets the AES encryption key for this blob.
-            </summary>
-            <param name="key">The key.</param>
-        </member>
-        <member name="M:SteamKit2.Blob.BlobReader.Process">
-            <summary>
-            Processes this instance.
-            </summary>
-            <returns><c>true</c> if this blob could be processed; otherwise, file.</returns>
-        </member>
-        <member name="E:SteamKit2.Blob.BlobReader.Blob">
-            <summary>
-            Occurs when a blob begins.
+            Read the next Field in the blob
             </summary>
         </member>
-        <member name="E:SteamKit2.Blob.BlobReader.EndBlob">
+        <member name="M:SteamKit2.Blob.BlobReader.ReadFieldBlob">
             <summary>
-            Occurs when a blob ends.
+            Reads a field as a Blob
+            </summary>
+            <returns>Blob Reader</returns>
+        </member>
+        <member name="M:SteamKit2.Blob.BlobReader.SkipField">
+            <summary>
+            Skip over a field, discarding the contents of a field
             </summary>
         </member>
-        <member name="E:SteamKit2.Blob.BlobReader.Field">
+        <member name="M:SteamKit2.Blob.BlobReader.SkipSpare">
             <summary>
-            Occurs when a blob field begins.
+            Skip over the spare, discarding the contents
             </summary>
         </member>
-        <member name="E:SteamKit2.Blob.BlobReader.EndField">
+        <member name="P:SteamKit2.Blob.BlobReader.CacheState">
             <summary>
-            Occurs when a blob field ends.
+            Cache state of the blob being read
             </summary>
         </member>
-        <member name="E:SteamKit2.Blob.BlobReader.FieldValue">
+        <member name="P:SteamKit2.Blob.BlobReader.ProcessCode">
             <summary>
-            Occurs when a blob field value is parsed.
+            Process code of the blob being read
             </summary>
         </member>
-        <member name="E:SteamKit2.Blob.BlobReader.Spare">
+        <member name="P:SteamKit2.Blob.BlobReader.BytesAvailable">
             <summary>
-            Occurs when blob spare data is parsed.
+            Current bytes available to be read
             </summary>
         </member>
-        <member name="T:SteamKit2.Blob.BlobReader.FieldKeyType">
+        <member name="P:SteamKit2.Blob.BlobReader.SpareAvailable">
             <summary>
-            The field key type.
+            Current spare bytes available to be read
             </summary>
         </member>
-        <member name="F:SteamKit2.Blob.BlobReader.FieldKeyType.StringType">
+        <member name="P:SteamKit2.Blob.BlobReader.FieldKeyBytes">
             <summary>
-            String key type.
+            Size of the Field Key currently being processed
             </summary>
         </member>
-        <member name="F:SteamKit2.Blob.BlobReader.FieldKeyType.IntType">
+        <member name="P:SteamKit2.Blob.BlobReader.FieldDataBytes">
             <summary>
-            Int key type.
+            Size of the Field Data currently being processed
+            </summary>
+        </member>
+        <member name="P:SteamKit2.Blob.BlobReader.ByteKey">
+            <summary>
+            Byte buffer of the Field Key
+            </summary>
+        </member>
+        <member name="P:SteamKit2.Blob.BlobReader.PeekIntKey">
+            <summary>
+            Peekable int of the Field Key
+            </summary>
+        </member>
+        <member name="T:SteamKit2.Blob.BlobReader.InvalidBlobException">
+            <summary>
+            Exception for a Blob that cannot be parsed
             </summary>
         </member>
         <member name="T:SteamKit2.Blob.EAutoPreprocessCode">
@@ -1446,657 +1476,31 @@
             The cache is a plaintext version.
             </summary>
         </member>
-        <member name="T:SteamKit2.Blob.CacheContext">
+        <member name="T:SteamKit2.Blob.BlobUnhandledTypeException">
             <summary>
-            Provides caching for the fast construction of types
+            Exception class for a type that can't be parsed
             </summary>
         </member>
-        <member name="M:SteamKit2.Blob.CacheContext.#ctor">
+        <member name="T:SteamKit2.Blob.BlobTypedReader">
             <summary>
-            Initializes the default state of the CacheContext
+            Blob reader that builds a type model
             </summary>
         </member>
-        <member name="T:SteamKit2.Blob.CacheUtil">
+        <member name="M:SteamKit2.Blob.BlobTypedReader.DeserializeSlow(SteamKit2.Blob.BlobReader,System.Type)">
             <summary>
-            Cache utility functions to operate on a CacheContext
+            Deserialize a blob into a type. Does not JIT
             </summary>
+            <param name="reader">Blob reader</param>
+            <param name="type">Target type</param>
+            <returns>Type model</returns>
         </member>
-        <member name="M:SteamKit2.Blob.CacheUtil.GetCachedPropertyInfo(System.Type,SteamKit2.Blob.CacheContext)">
+        <member name="M:SteamKit2.Blob.BlobTypedReader.Deserialize(SteamKit2.Blob.BlobReader,System.Type)">
             <summary>
-            Retrieve the cached property info for a class given the CacheContext
+            Deserialize a blob into a type
             </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.CacheUtil.GetCachedCustomAttribs(SteamKit2.Blob.CacheContext,System.Reflection.MemberInfo,System.Type)">
-            <summary>
-            Retrieve the cached list of custom attributes for a member
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.CacheUtil.GetAttribute``1(System.Reflection.MemberInfo,SteamKit2.Blob.CacheContext)">
-            <summary>
-            Retrieve the cached attribute for a member 
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.CacheUtil.FastConstruct(SteamKit2.Blob.CacheContext,System.Type)">
-            <summary>
-            Construct a type using the cached constructor
-            </summary>
-            todo: consider pooling
-        </member>
-        <member name="M:SteamKit2.Blob.CacheUtil.IsTypeListOrDictionary(System.Type,System.Type@,System.Int32@)">
-            <summary>
-            Helper method to test if a type is a list or dictionary
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.FastPropertyInfo">
-            <summary>
-            Custom <see cref="T:System.Reflection.PropertyInfo"/> that wraps an existing property and provides 
-            <c>Reflection.Emit</c>-generated <see cref="M:SteamKit2.Blob.FastPropertyInfo.GetValue(System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo)"/> and <see cref="M:SteamKit2.Blob.FastPropertyInfo.SetValue(System.Object,System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo)"/> 
-            implementations for drastically improved performance over default late-bind 
-            invoke.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.#ctor(System.Reflection.PropertyInfo)">
-            <summary>
-            Initializes the property and generates the implementation for getter and setter methods.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.SetValue(System.Object,System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo)">
-            <summary>
-            See <see cref="M:System.Reflection.PropertyInfo.SetValue(System.Object,System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo)"/>.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.GetValue(System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo)">
-            <summary>
-            See <see cref="M:System.Reflection.PropertyInfo.GetValue(System.Object,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo)"/>.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.GetAccessors(System.Boolean)">
-            <summary>
-            See <see cref="M:System.Reflection.PropertyInfo.GetAccessors(System.Boolean)"/>.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.GetGetMethod(System.Boolean)">
-            <summary>
-            See <see cref="M:System.Reflection.PropertyInfo.GetGetMethod(System.Boolean)"/>.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.GetIndexParameters">
-            <summary>
-            See <see cref="M:System.Reflection.PropertyInfo.GetIndexParameters"/>.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.GetSetMethod(System.Boolean)">
-            <summary>
-            See <see cref="M:System.Reflection.PropertyInfo.GetSetMethod(System.Boolean)"/>.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.GetCustomAttributes(System.Type,System.Boolean)">
-            <summary>
-            See <see cref="M:System.Reflection.MemberInfo.GetCustomAttributes(System.Type,System.Boolean)"/>.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.GetCustomAttributes(System.Boolean)">
-            <summary>
-            See <see cref="M:System.Reflection.MemberInfo.GetCustomAttributes(System.Boolean)"/>.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.FastPropertyInfo.IsDefined(System.Type,System.Boolean)">
-            <summary>
-            See <see cref="M:System.Reflection.MemberInfo.IsDefined(System.Type,System.Boolean)"/>.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.FastPropertyInfo.PropertyType">
-            <summary>
-            See <see cref="P:System.Reflection.PropertyInfo.PropertyType"/>.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.FastPropertyInfo.DeclaringType">
-            <summary>
-            See <see cref="P:System.Reflection.MemberInfo.DeclaringType"/>.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.FastPropertyInfo.Attributes">
-            <summary>
-            See <see cref="P:System.Reflection.PropertyInfo.Attributes"/>.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.FastPropertyInfo.CanRead">
-            <summary>
-            See <see cref="P:System.Reflection.PropertyInfo.CanRead"/>.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.FastPropertyInfo.CanWrite">
-            <summary>
-            See <see cref="P:System.Reflection.PropertyInfo.CanWrite"/>.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.FastPropertyInfo.Name">
-            <summary>
-            See <see cref="P:System.Reflection.MemberInfo.Name"/>.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.FastPropertyInfo.ReflectedType">
-            <summary>
-            See <see cref="P:System.Reflection.MemberInfo.ReflectedType"/>.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRFields">
-            <summary>
-            Represents the root fields available in the CDR blob.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRFields.eFieldVersionNum">
-            <summary>
-            The version number field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRFields.eFieldApplicationsRecord">
-            <summary>
-            The applications record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRFields.eFieldSubscriptionsRecord">
-            <summary>
-            The subscriptions record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRFields.eFieldLastChangedExistingAppOrSubscriptionTime">
-            <summary>
-            The last changed time field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRFields.eFieldIndexAppIdToSubscriptionIdsRecord">
-            <summary>
-            The AppID to SubID record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRFields.eFieldAllAppsPublicKeysRecord">
-            <summary>
-            The public keys record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRFields.eFieldAllAppsEncryptedPrivateKeysRecord">
-            <summary>
-            The encrypted private keys record field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRAppRecordFields">
-            <summary>
-            Represents the root fields available in the applications record.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldAppId">
-            <summary>
-            The AppID field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldName">
-            <summary>
-            The name field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldInstallDirName">
-            <summary>
-            The install directory field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldMinCacheFileSizeMB">
-            <summary>
-            The minimum cache size field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldMaxCacheFileSizeMB">
-            <summary>
-            The maximum cache size field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldLaunchOptionsRecord">
-            <summary>
-            The launch options record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldIconsRecord">
-            <summary>
-            The icons record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldOnFirstLaunch">
-            <summary>
-            The "on first launch" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldIsBandwidthGreedy">
-            <summary>
-            The "is bandwidth greedy" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldVersionsRecord">
-            <summary>
-            The versions record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldCurrentVersionId">
-            <summary>
-            The current version id field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldFilesystemsRecord">
-            <summary>
-            The filesystems record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldTrickleVersionId">
-            <summary>
-            The trickle version field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldUserDefinedRecord">
-            <summary>
-            The user defined record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldBetaVersionPassword">
-            <summary>
-            The beta version password field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldBetaVersionId">
-            <summary>
-            The beta version id field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldLegacyInstallDirName">
-            <summary>
-            The legacy install directory field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldSkipMFPOverwrite">
-            <summary>
-            The "skip mfp overwrite" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldUseFilesystemDvr">
-            <summary>
-            The "use filesystem dvr" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldManifestOnlyApp">
-            <summary>
-            The "manifest only app" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppRecordFields.eFieldAppOfManifestOnlyCache">
-            <summary>
-            The "AppID of manifest only app" field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRAppVersionFields">
-            <summary>
-            Represents the root fields available in the application version record.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppVersionFields.eFieldDescription">
-            <summary>
-            The description field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppVersionFields.eFieldVersionId">
-            <summary>
-            The version id field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppVersionFields.eFieldIsNotAvailable">
-            <summary>
-            The "is not available" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppVersionFields.eFieldLaunchOptionIdsRecord">
-            <summary>
-            The launch option ids record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppVersionFields.eFieldDepotEncryptionKey">
-            <summary>
-            The depot encryption key field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppVersionFields.eFieldIsEncryptionKeyAvailable">
-            <summary>
-            The "is encryption key available" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppVersionFields.eFieldIsRebased">
-            <summary>
-            The "is rebased" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppVersionFields.eFieldIsLongVersionRoll">
-            <summary>
-            The "is long version roll" field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRAppLaunchOptionFields">
-            <summary>
-            Represents the root fields available in the launch option record.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppLaunchOptionFields.eFieldDescription">
-            <summary>
-            The description field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppLaunchOptionFields.eFieldCommandLine">
-            <summary>
-            The command line field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppLaunchOptionFields.eFieldIconIndex">
-            <summary>
-            The icon index field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppLaunchOptionFields.eFieldNoDesktopShortcut">
-            <summary>
-            The "no desktop shortcut" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppLaunchOptionFields.eFieldNoStartMenuShortcut">
-            <summary>
-            The "no start menu shortcut" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppLaunchOptionFields.eFieldLongRunningUnattended">
-            <summary>
-            The "long running unattended" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppLaunchOptionFields.eFieldPlatform">
-            <summary>
-            The platform field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRAppFilesystemFields">
-            <summary>
-            Represents the root fields available in the filesystems record.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppFilesystemFields.eFieldAppId">
-            <summary>
-            The AppID field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppFilesystemFields.eFieldMountName">
-            <summary>
-            The mount name field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppFilesystemFields.eFieldIsOptional">
-            <summary>
-            The "is optional" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRAppFilesystemFields.eFieldPlatform">
-            <summary>
-            The platform field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRSubRecordFields">
-            <summary>
-            Represents the root fields available in the subscription record.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldSubId">
-            <summary>
-            The SubID field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldName">
-            <summary>
-            The name field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldBillingType">
-            <summary>
-            The billing type field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldCostInCents">
-            <summary>
-            The cost in cents field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldPeriodInMinutes">
-            <summary>
-            The period in minutes field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldAppIdsRecord">
-            <summary>
-            The AppIDs record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldOnSubscribeRunAppId">
-            <summary>
-            The "on subscribe run appid" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldOnSubscribeRunLaunchOptionIndex">
-            <summary>
-            The "on subscribe run launch option index" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldOptionalRateLimitRecord">
-            <summary>
-            The optional rate limit record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldDiscountsRecord">
-            <summary>
-            The discounts record field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldIsPreorder">
-            <summary>
-            The "is preorder" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldRequiresShippingAddress">
-            <summary>
-            The "requires shipping address" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldDomesticCostInCents">
-            <summary>
-            The domestic cost in cents field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldInternationalCostInCents">
-            <summary>
-            The international cost in cents field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldRequiredKeyType">
-            <summary>
-            The required key type field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldIsCyberCafe">
-            <summary>
-            The "is cyber cafe" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldGameCode">
-            <summary>
-            The game code field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldGameCodeDescription">
-            <summary>
-            The game code description field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldIsDisabled">
-            <summary>
-            The "is disabled" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldRequiresCD">
-            <summary>
-            The "requires CD" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldTerritoryCode">
-            <summary>
-            The territory code field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldIsSteam3Subscription">
-            <summary>
-            The "is steam3 subscription" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRecordFields.eFieldExtendedInfoRecord">
-            <summary>
-            The extended info record field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRSubRateLimitFields">
-            <summary>
-            Represents the root fields available in the subscription rate limit record.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRateLimitFields.eFieldLimit">
-            <summary>
-            The limit field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubRateLimitFields.eFieldPeriodInMinutes">
-            <summary>
-            The period in minutes field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRSubDiscountFields">
-            <summary>
-            Represents the root fields available in the subscription discount record.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubDiscountFields.eFieldName">
-            <summary>
-            The name field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubDiscountFields.eFieldDiscountInCents">
-            <summary>
-            The discount in cents field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubDiscountFields.eFieldDiscountQualifiersRecord">
-            <summary>
-            The discount qualifiers record field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.CDRSubDiscountQualifierFields">
-            <summary>
-            Represents the root fields available in the subscription discount qualifier record.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubDiscountQualifierFields.eFieldName">
-            <summary>
-            The name field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubDiscountQualifierFields.eFieldSubscriptionRequired">
-            <summary>
-            The "subscription required" field.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.Blob.CDRSubDiscountQualifierFields.eFieldIsDisqualifier">
-            <summary>
-            The "is disqualifier" field.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.BlobFieldAttribute">
-            <summary>
-            This attribute is used to mark properties, classes, and structs for typed reading.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.BlobFieldAttribute.Depth">
-            <summary>
-            Depth from stack.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.BlobFieldAttribute.FieldKey">
-            <summary>
-            Field key.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.BlobFieldAttribute.SubFieldDepth">
-            <summary>
-            Depth to sub field for value.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.BlobFieldAttribute.SubFieldKey">
-            <summary>
-            Value sub field to use for fields with blobs.
-            </summary>
-        </member>
-        <member name="P:SteamKit2.Blob.BlobFieldAttribute.Complex">
-            <summary>
-            If complex, the sub type will be searched for blob fields.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.BlobTypedReader`1">
-            <summary>
-            Utility blob reader which processes blob data into the given type.
-            </summary>
-            <typeparam name="T">The type to process the blob into.</typeparam>
-        </member>
-        <member name="M:SteamKit2.Blob.BlobTypedReader`1.Create(System.IO.Stream)">
-            <summary>
-            Creates a new instance of a <see cref="T:SteamKit2.Blob.BlobTypedReader`1"/> for the given input stream.
-            </summary>
-            <param name="inputStream">The input stream to process.</param>
-            <returns>A new <see cref="T:SteamKit2.Blob.BlobReader"/> instance.</returns>
-        </member>
-        <member name="M:SteamKit2.Blob.BlobTypedReader`1.Create(System.String)">
-            <summary>
-            Creates a new instance of a <see cref="T:SteamKit2.Blob.BlobTypedReader`1"/> for the given input file.
-            </summary>
-            <param name="fileName">The input file to process.</param>
-            <returns>A new <see cref="T:SteamKit2.Blob.BlobReader"/> instance.</returns>
-        </member>
-        <member name="P:SteamKit2.Blob.BlobTypedReader`1.Target">
-            <summary>
-            Gets the completed type object available after processing.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.Blob.BlobXmlReader">
-            <summary>
-            A utility blob reader to process a blob into xml data.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.BlobXmlReader.Dispose">
-            <summary>
-            Releases unmanaged and - optionally - managed resources
-            </summary>
-        </member>
-        <member name="M:SteamKit2.Blob.BlobXmlReader.Create(System.IO.Stream,System.IO.Stream,System.Xml.XmlWriterSettings)">
-            <summary>
-            Creates a new instance of a <see cref="T:SteamKit2.Blob.BlobXmlReader"/> for the given input and output streams, along with the given settings.
-            </summary>
-            <param name="inputStream">The input stream to process.</param>
-            <param name="outputStream">The output stream to write to.</param>
-            <param name="settings">The settings to use.</param>
-            <returns>A new <see cref="T:SteamKit2.Blob.BlobXmlReader"/> instance.</returns>
-        </member>
-        <member name="M:SteamKit2.Blob.BlobXmlReader.Create(System.String,System.String,System.Xml.XmlWriterSettings)">
-            <summary>
-            Creates a new instance of a <see cref="T:SteamKit2.Blob.BlobXmlReader"/> for the given input and output streams, along with the given settings.
-            </summary>
-            <param name="fileName">Name of the input file to process.</param>
-            <param name="outFileName">Name of the output file to write to.</param>
-            <param name="settings">The settings to use.</param>
-            <returns></returns>
+            <param name="reader">Blob reader</param>
+            <param name="type">Target type</param>
+            <returns>Type model</returns>
         </member>
         <member name="T:SteamKit2.CDNClient">
             <summary>
@@ -2528,6 +1932,86 @@
         <member name="P:SteamKit2.SteamMasterServer.QueryDetails.MaxServers">
             <summary>
             Gets or sets the maximum number of servers to return.
+            </summary>
+        </member>
+        <member name="T:SteamKit2.SteamTrading">
+            <summary>
+            This handler is used for initializing Steam trades with other clients.
+            </summary>
+        </member>
+        <member name="M:SteamKit2.SteamTrading.Trade(SteamKit2.SteamID)">
+            <summary>
+            Proposes a trade to another client.
+            </summary>
+            <param name="user">The client to trade.</param>
+        </member>
+        <member name="M:SteamKit2.SteamTrading.RespondToTrade(System.UInt32,System.Boolean)">
+            <summary>
+            Responds to a trade proposal.
+            </summary>
+            <param name="tradeId">The trade id of the received proposal.</param>
+            <param name="acceptTrade">if set to <c>true</c>, the trade will be accepted.</param>
+        </member>
+        <member name="M:SteamKit2.SteamTrading.CancelTrade(SteamKit2.SteamID)">
+            <summary>
+            Cancels an already sent trade proposal.
+            </summary>
+            <param name="user">The user.</param>
+        </member>
+        <member name="M:SteamKit2.SteamTrading.HandleMsg(SteamKit2.IPacketMsg)">
+            <summary>
+            Handles a client message. This should not be called directly.
+            </summary>
+            <param name="packetMsg">The packet message that contains the data.</param>
+        </member>
+        <member name="T:SteamKit2.SteamTrading.TradeProposedCallback">
+            <summary>
+            This callback is fired when this client receives a trade proposal.
+            </summary>
+        </member>
+        <member name="P:SteamKit2.SteamTrading.TradeProposedCallback.TradeID">
+            <summary>
+            Gets the Trade ID of his proposal, used for replying.
+            </summary>
+        </member>
+        <member name="P:SteamKit2.SteamTrading.TradeProposedCallback.OtherClient">
+            <summary>
+            Gets the SteamID of the client that sent the proposal.
+            </summary>
+        </member>
+        <member name="P:SteamKit2.SteamTrading.TradeProposedCallback.OtherName">
+            <summary>
+            Gets the persona name of the client that sent the proposal.
+            </summary>
+        </member>
+        <member name="T:SteamKit2.SteamTrading.TradeResultCallback">
+            <summary>
+            This callback is fired when this client receives the response from a trade proposal.
+            </summary>
+        </member>
+        <member name="P:SteamKit2.SteamTrading.TradeResultCallback.TradeID">
+            <summary>
+            Gets the Trade ID that this result is for.
+            </summary>
+        </member>
+        <member name="P:SteamKit2.SteamTrading.TradeResultCallback.Response">
+            <summary>
+            Gets the response of the trade proposal.
+            </summary>
+        </member>
+        <member name="P:SteamKit2.SteamTrading.TradeResultCallback.OtherClient">
+            <summary>
+            Gets the SteamID of the client that responded to the proposal.
+            </summary>
+        </member>
+        <member name="T:SteamKit2.SteamTrading.SessionStartCallback">
+            <summary>
+            This callback is fired when a trading session has started.
+            </summary>
+        </member>
+        <member name="P:SteamKit2.SteamTrading.SessionStartCallback.OtherClient">
+            <summary>
+            Gets the SteamID of the client that this the trading session has started with.
             </summary>
         </member>
         <member name="T:SteamKit2.SteamWorkshop">
@@ -6489,6 +5973,11 @@
             Occurs when a net message is recieved over the network.
             </summary>
         </member>
+        <member name="E:SteamKit2.Connection.Connected">
+            <summary>
+            Occurs when the physical connection is established.
+            </summary>
+        </member>
         <member name="E:SteamKit2.Connection.Disconnected">
             <summary>
             Occurs when the physical connection is broken.
@@ -7528,92 +7017,6 @@
         <member name="F:SteamKit2.SteamID.ChatInstanceFlags.MMSLobby">
             <summary>
             This flag is set for matchmaking lobby based chat <see cref="T:SteamKit2.SteamID">SteamIDs</see>.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.ETradeStatus">
-            <summary>
-            The status of a trade request.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.SteamTrading">
-            <summary>
-            This handler is used to handle trading-related queries from Steam.
-            </summary>
-        </member>
-        <member name="M:SteamKit2.SteamTrading.RequestTrade(SteamKit2.SteamID)">
-            <summary>
-            Requests a trade with another Steam account.
-            Results are returned in <see cref="T:SteamKit2.SteamTrading.TradeRequestCallback"/>.
-            </summary>
-            <param name="target">The target account you want to trade with.</param>
-        </member>
-        <member name="M:SteamKit2.SteamTrading.RespondTradeRequest(System.UInt32,SteamKit2.SteamID,System.Boolean)">
-            <summary>
-            Responds to a trade request from another Steam account.
-            If the trade is accepted, a <see cref="!:SteamTrading.StartSessionCallback"/> will be received.
-            </summary>
-            <param name="target">The target account you want to trade with.</param>
-        </member>
-        <member name="M:SteamKit2.SteamTrading.CancelPendingTrade(SteamKit2.SteamID)">
-            <summary>
-            Cancels a pending trade request.
-            </summary>
-            <param name="target">The target account you want to trade with.</param>
-        </member>
-        <member name="M:SteamKit2.SteamTrading.HandleMsg(SteamKit2.IPacketMsg)">
-            <summary>
-            Handles a client message. This should not be called directly.
-            </summary>
-            <param name="packetMsg">The packet message that contains the data.</param>
-        </member>
-        <member name="T:SteamKit2.SteamTrading.TradeRequestCallback">
-            <summary>
-            This callback is fired in response to receiving the result of a trade request.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.SteamTrading.TradeRequestCallback.Response">
-            <summary>
-            Gets the response of the request.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.SteamTrading.TradeRequestCallback.TradeRequestId">
-            <summary>
-            Gets the id of the trade request.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.SteamTrading.TradeRequestCallback.Other">
-            <summary>
-            Gets the SteamID of the other trader.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.SteamTrading.TradeRequestCallback.Status">
-            <summary>
-            Gets the status of the trade.
-            </summary>
-        </member>
-        <member name="T:SteamKit2.SteamTrading.TradeProposedCallback">
-            <summary>
-            This callback is fired in response to receiving a trade proposal.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.SteamTrading.TradeProposedCallback.TradeRequestId">
-            <summary>
-            Gets the id of the trade request.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.SteamTrading.TradeProposedCallback.Other">
-            <summary>
-            Gets the SteamID of the other trader.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.SteamTrading.TradeCancelRequestCallback.Other">
-            <summary>
-            Gets the SteamID of the other trader.
-            </summary>
-        </member>
-        <member name="F:SteamKit2.SteamTrading.TradeStartSessionCallback.Other">
-            <summary>
-            Gets the SteamID of the other trader.
             </summary>
         </member>
     </members>

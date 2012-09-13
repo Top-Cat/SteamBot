@@ -44,6 +44,14 @@ namespace SteamBot
 			return items;
 		}
 
+		public List<int> getItems() {
+			var items = new List<int>();
+			foreach (Item item in Items) {
+				items.Add(item.Defindex);
+			}
+			return items;
+		}
+
 		public class Item
 		{
 			[JsonProperty("id")]
@@ -59,7 +67,7 @@ namespace SteamBot
 			public byte Level { get; set; }
 
 			[JsonProperty("quality")]
-			public string Quality { get; set; }
+			public byte Quality { get; set; }
 
 			[JsonProperty("pos")]
 			public int Position { get; set; }

@@ -6,12 +6,9 @@
 
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net.Sockets;
-using System.Net;
-using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 
 namespace SteamKit2
@@ -42,9 +39,38 @@ namespace SteamKit2
             // if we're connected, disconnect
             Disconnect();
 
-            sock = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+            Socket socket = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
 
-            sock.Connect( endPoint );
+            SocketAsyncEventArgs e = new SocketAsyncEventArgs();
+            e.Completed += new EventHandler<SocketAsyncEventArgs>( ConnectCompleted );
+            e.RemoteEndPoint = endPoint;
+
+            DebugLog.WriteLine( "TcpConnection", "Connecting to {0}...", endPoint );
+
+            if ( !socket.ConnectAsync( e ) )
+            {
+                ConnectCompleted( socket, e );
+            }
+        }
+
+        void ConnectCompleted( object sender, SocketAsyncEventArgs e )
+        {
+            sock = sender as Socket;
+
+            if ( sock == null )
+            {
+                OnDisconnected( EventArgs.Empty );
+                return;
+            }
+
+            if ( e.SocketError != SocketError.Success )
+            {
+                DebugLog.WriteLine( "TcpConnection", "Unable to connect: {0}", e.SocketError );
+                OnDisconnected( EventArgs.Empty );
+                return;
+            }
+
+            DebugLog.WriteLine( "TcpConnection", "Connected!" );
 
             isConnected = true;
 
@@ -57,6 +83,8 @@ namespace SteamKit2
             netThread = new Thread( NetLoop );
             netThread.Name = "TcpConnection Thread";
             netThread.Start();
+
+            OnConnected( EventArgs.Empty );
         }
 
         /// <summary>
@@ -219,8 +247,11 @@ namespace SteamKit2
             if ( sock != null )
             {
                 // cleanup socket
-                sock.Shutdown( SocketShutdown.Both );
-                sock.Disconnect( true );
+                if ( sock.Connected )
+                {
+                    sock.Shutdown( SocketShutdown.Both );
+                    sock.Disconnect( true );
+                }
                 sock.Close();
 
                 sock = null;
