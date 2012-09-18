@@ -8,9 +8,18 @@ namespace SteamBot
 	{
 		public static Inventory FetchInventory (ulong steamId, string apiKey)
 		{
+			int tries = 0;
 			var url = "http://api.steampowered.com/IEconItems_440/GetPlayerItems/v0001/?key=" + apiKey + "&steamid=" + steamId;
-			string response = SteamWeb.Fetch (url, "GET", null, null, false);
-			InventoryResponse result = JsonConvert.DeserializeObject<InventoryResponse> (response);
+			InventoryResponse result = null;
+			while (++tries < 3 && result == null) {
+				try {
+					string response = SteamWeb.Fetch(url, "GET", null, null, false);
+					result = JsonConvert.DeserializeObject<InventoryResponse>(response);
+				} catch (Exception)  {}
+			}
+			if (result == null) {
+				throw new Exception("Couldn't fetch inventory");
+			}
 			return new Inventory(result.result);
 		}
 
@@ -48,6 +57,14 @@ namespace SteamBot
 			var items = new List<int>();
 			foreach (Item item in Items) {
 				items.Add(item.Defindex);
+			}
+			return items;
+		}
+
+		public List<ulong> getItemIds() {
+			var items = new List<ulong>();
+			foreach (Item item in Items) {
+				items.Add(item.OriginalId);
 			}
 			return items;
 		}

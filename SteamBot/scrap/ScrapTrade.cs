@@ -11,11 +11,12 @@ namespace SteamBot.scrap {
 	class ScrapTrade : Trade.TradeListener {
 		private Bot bot;
 
+		private Dictionary<uint, bool> accepted = new Dictionary<uint, bool>();
+
 		private List<int> reservedGiven = new List<int>();
 		private int scrapGiven = 0;
 		private bool onlyApplicable = true;
 		private bool check = false;
-		private bool scrapMode = false;
 
 		private int slot = 0;
 
@@ -28,11 +29,15 @@ namespace SteamBot.scrap {
 			OnFinished(false);
 		}
 
-		public override void OnError(string message) {
+		public override void OnError(int eid) {
+			Util.printConsole("Error(" + eid + ") during trade with user", bot, ConsoleColor.Red);
 			OnFinished(false);
 		}
 
 		public override void OnAfterInit() {
+			slot = 0;
+			scrapGiven = 0;
+	
 			trade.SendMessage("Welcome to ScrapBank!");
 			respond();
 		}
@@ -40,45 +45,62 @@ namespace SteamBot.scrap {
 		public override void OnUserAccept() {
 			dynamic js = trade.AcceptTrade();
 			if (js.success == true) {
-				Util.printConsole("[TradeSystem] Trade was successfull! Resetting System...", ConsoleColor.Green);
-				//if (!scrapMode) {
-				int scrapReveived = 0;
-				foreach (ulong child in trade.OtherTrade) {
-					dynamic item = trade.OtherItems.rgInventory[child.ToString()];
-					Inventory.Item record = trade.OtherInventory.GetItem(getU(item.id));
-					if (record.Defindex != 5000) {
-						bot.sql.update("UPDATE items SET stock = stock + 1, `in` = `in` + 1 WHERE schemaid = '" + record.Defindex + "'");
-					} else {
-						scrapReveived++;
-					}
-				}
-				foreach (int itemid in reservedGiven) {
-					bot.sql.update("DELETE FROM reservation WHERE itemid = '" + itemid + "' && steamid = '" + trade.otherSID.ConvertToUInt64() + "' LIMIT 1");
-					bot.sql.update("UPDATE items SET stock = stock - 1, `out` = `out` + 1 WHERE schemaid = '" + itemid + "'");
-				}
-				bot.sql.update("UPDATE bots SET scrap = scrap + " + (scrapReveived - scrapGiven) + ", items = items + " + ((trade.OtherTrade.Count - scrapReveived) - reservedGiven.Count) + " WHERE botid = '" + bot.getBotId() + "'");
-				//}
-				OnFinished(true);
+				Util.printConsole("Trade Success", bot, ConsoleColor.Green, true);
 			} else {
-				Util.printConsole("[TradeSystem] Poo! Trade might of Failed :C Well, resetting anyway...", ConsoleColor.Red);
-				OnFinished(false);
+				Util.printConsole("Trade Failure", bot, ConsoleColor.Red, true);
 			}
+		}
+
+		public override void OnComplete() {
+			int scrapReveived = 0;
+			Dictionary<ushort, DualMInt> itemTotals = new Dictionary<ushort, DualMInt>();
+			foreach (ulong child in trade.OtherTrade) {
+				dynamic item = trade.OtherItems.rgInventory[child.ToString()];
+				Inventory.Item record = trade.OtherInventory.GetItem(getU(item.id));
+				if (record.Defindex != 5000) {
+					if (itemTotals.ContainsKey(record.Defindex)) {
+						itemTotals[record.Defindex].get1().increment();
+					} else {
+						itemTotals.Add(record.Defindex, new DualMInt(1, 0));
+					}
+				} else {
+					scrapReveived++;
+				}
+			}
+			foreach (ushort itemid in reservedGiven) {
+				bot.sql.update("DELETE FROM reservation WHERE itemid = '" + itemid + "' && steamid = '" + trade.otherSID.ConvertToUInt64() + "' LIMIT 1");
+				if (itemTotals.ContainsKey(itemid)) {
+					itemTotals[itemid].get2().increment();
+				} else {
+					itemTotals.Add(itemid, new DualMInt(0, 1));
+				}
+			}
+
+			int id = bot.sql.insert("INSERT INTO tradelog (steamid, botid, scrap, items, success) VALUES ('" + trade.otherSID.ConvertToUInt64() + "', '" + bot.getBotId() + "', '" + scrapGiven + "', '" + reservedGiven.Count + "', '1')");
+
+			foreach (ushort itemid in itemTotals.Keys) {
+				bot.sql.update("UPDATE items SET stock = stock + " + (itemTotals[itemid].get1().get() - itemTotals[itemid].get2().get()) + ", `in` = `in` + " + itemTotals[itemid].get1().get() + ", `out` = `out` + " + itemTotals[itemid].get2().get() + " WHERE schemaid = '" + itemid + "'");
+				bot.sql.update("INSERT INTO tradeitems (tradeid, schemaid, quantityIn, quantityOut) VALUES (" + id + ", '" + itemid + "', " + itemTotals[itemid].get1().get() + ", " + itemTotals[itemid].get2().get() + ")");
+			}
+
+			bot.sql.update("UPDATE bots SET trades = trades + 1, scrap = scrap + " + (scrapReveived - scrapGiven) + ", items = items + " + ((trade.OtherTrade.Count - scrapReveived) - reservedGiven.Count) + " WHERE botid = '" + bot.getBotId() + "'");
+			reservedGiven.Clear();
+			bot.SteamFriends.SendChatMessage(trade.otherSID, EChatEntryType.ChatMsg, "Thanks for trading with us :)");
+			OnFinished(true);
 		}
 
 		public void OnFinished(bool success) {
 			bot.queueHandler.tradeEnded();
 			bot.CurrentTrade = null;
-			bot.sql.update("UPDATE bots SET trades = trades + 1 WHERE botid = '" + bot.getBotId() + "'");
 			if (!success) {
 				bot.sql.update("INSERT INTO tradelog (steamid, botid, scrap, items, success) VALUES ('" + trade.otherSID.ConvertToUInt64() + "', '" + bot.getBotId() + "', '0', '0', '0')");
-			} else {
-				bot.sql.update("INSERT INTO tradelog (steamid, botid, scrap, items, success) VALUES ('" + trade.otherSID.ConvertToUInt64() + "', '" + bot.getBotId() + "', '" + scrapGiven + "', '" + reservedGiven.Count + "', '1')");
+				bot.sql.update("UPDATE bots SET trades = trades + 1 WHERE botid = '" + bot.getBotId() + "'");
 			}
 		}
 
 		public override void OnUserSetReadyState(bool ready) {
 			if (ready) {
-				if (scrapMode || (check && onlyApplicable)) {
+				if (check && onlyApplicable) {
 					trade.SetReady(true);
 				} else {
 					trade.SendMessage("Please fix issues with your items before the trade can be completed");
@@ -97,22 +119,11 @@ namespace SteamBot.scrap {
 		}
 
 		public override void OnMessage(string message) {
-			if (message == "/scrap") {
-				scrapMode = true;
-				foreach (ulong child in trade.MyTrade) {
-					trade.removeItem(child);
-				}
-			}
+			
 		}
 
 		public override void OnNewVersion() {
-			if (!scrapMode) {
-				respond();
-			}
-		}
-
-		private ulong getU(JValue v) {
-			return ((JValue) v).ToObject<ulong>();
+			respond();
 		}
 
 		private int[] applicableItems() {
@@ -124,18 +135,20 @@ namespace SteamBot.scrap {
 				dynamic itemInfo = trade.OtherItems.rgDescriptions[(string) (item.classid + "_" + item.instanceid)];
 
 				Inventory.Item record = trade.OtherInventory.GetItem(getU(item.id));
-				int itemid = record.Defindex;
 				bool itemok = (!record.IsNotCraftable && record.Quality == 6);
 
-				List<object[]> myReader = bot.sql.query("SELECT '' FROM items WHERE schemaid='" + itemid + "'");
+				if (!accepted.ContainsKey(record.Defindex)) {
+					List<object[]> myReader = bot.sql.query("SELECT '' FROM items WHERE schemaid='" + record.Defindex + "'");
+					accepted.Add(record.Defindex, myReader.Count > 0);
+				}
 
-				if (myReader.Count > 0 && itemok) {
+				if (accepted[record.Defindex] && itemok) {
 					items[0]++;
 				} else if (itemok && record.Defindex == 5000) {
 					items[1]++;
 				} else {
 					onlyApplicable = false;
-					chat += "Item '" + itemInfo.name + " (" + itemid + ")' not accepted\n";
+					chat += "Item '" + itemInfo.name + " (" + record.Defindex + ")' not accepted\n";
 				}
 			}
 			trade.SendMessage(chat);
@@ -151,12 +164,14 @@ namespace SteamBot.scrap {
 				int scrapB = items[0] / 2;
 				int cScrap = 0;
 
-				List<int> reserved = bot.queueHandler.getReservedItems();
+				List<uint> reserved = bot.queueHandler.getReservedItems();
+				List<ulong> alreadyTrade = new List<ulong>();
 
 				foreach (ulong child in trade.MyTrade) {
 					Inventory.Item item = trade.MyInventory.GetItem(getU(trade.MyItems.rgInventory[child.ToString()].id));
 					if (item.Defindex != 5000) {
 						if (reserved.Contains(item.Defindex)) {
+							alreadyTrade.Add(child);
 							reserved.Remove(item.Defindex);
 							if (scrapA > 0) {
 								scrapA--;
@@ -173,7 +188,7 @@ namespace SteamBot.scrap {
 
 				foreach (var child in trade.MyItems.rgInventory) {
 					Inventory.Item item = trade.MyInventory.GetItem(ulong.Parse(((JProperty) child).Name));
-					if (reserved.Contains(item.Defindex)) {
+					if (reserved.Contains(item.Defindex) && !alreadyTrade.Contains(item.Id)) {
 						trade.addItem(ulong.Parse(((JProperty) child).Name), slot++);
 						reservedGiven.Add(item.Defindex);
 						reserved.Remove(item.Defindex);

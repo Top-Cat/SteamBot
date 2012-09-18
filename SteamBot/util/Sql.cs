@@ -6,9 +6,9 @@ using System.Threading;
 using MySql.Data.MySqlClient;
 
 namespace SteamBot.util {
-    public class Sql {
+	public class Sql {
 		private MySqlConnection myConnection;
-		private string lck = "";
+		private static string lck = "";
 
 		public Sql() {
 			myConnection = new MySqlConnection("");
@@ -20,11 +20,32 @@ namespace SteamBot.util {
 		}
 
 		public int update(string sql) {
-			return createCommand(sql).ExecuteNonQuery();
+			lock (lck) {
+				checkConnection();
+				MySqlCommand cmd = createCommand(sql);
+				return cmd.ExecuteNonQuery();
+			}
+		}
+
+		public int insert(string sql) {
+			lock (lck) {
+				checkConnection();
+				MySqlCommand cmd = createCommand(sql);
+				int aff = cmd.ExecuteNonQuery();
+				return (int) cmd.LastInsertedId;
+			}
+		}
+
+		private void checkConnection() {
+			while (myConnection.State != System.Data.ConnectionState.Open) {
+				Thread.Sleep(1000);
+				myConnection.Open();
+			}
 		}
 
 		public List<object[]> query(string sql) {
 			lock (lck) {
+				checkConnection();
 				MySqlDataReader lastReader = createCommand(sql).ExecuteReader();
 				List<object[]> response = new List<object[]>();
 				while (lastReader.Read()) {
@@ -38,5 +59,5 @@ namespace SteamBot.util {
 				return response;
 			}
 		}
-    }
+	}
 }

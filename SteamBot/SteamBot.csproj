@@ -71,8 +71,10 @@
     <Compile Include="Configuration.cs" />
     <Compile Include="Inventory.cs" />
     <Compile Include="ItemInfo.cs" />
-    <Compile Include="MutableInt.cs" />
+    <Compile Include="util\DualMInt.cs" />
+    <Compile Include="util\MutableInt.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="scrap\AdminTrade.cs" />
     <Compile Include="scrap\ExchangeTrade.cs" />
     <Compile Include="scrap\ScrapTrade.cs" />
     <Compile Include="scrap\QueueHandler.cs" />

@@ -3,9 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SteamBot {
+namespace SteamBot.util {
 	class MutableInt {
 		int value = 1;
+
+		public MutableInt() {
+	
+		}
+
+		public MutableInt(uint init) {
+			value = unchecked((int) init);
+		}
 	
 		public void increment () {
 			++value;

@@ -5,6 +5,7 @@ using System.Net;
 using Newtonsoft.Json;
 using SteamKit2;
 using SteamBot.util;
+using Newtonsoft.Json.Linq;
 
 namespace SteamBot
 {
@@ -46,9 +47,13 @@ namespace SteamBot
 		public List<ulong> MyTrade = new List<ulong>();
 		public List<ulong> OtherTrade = new List<ulong>();
 		public List<ulong>[] trades;
+		public List<ulong> OMyTrade = new List<ulong>();
+		public List<ulong> OOtherTrade = new List<ulong>();
+		public List<ulong>[] Otrades;
 
 		public Inventory OtherInventory;
 		public Inventory MyInventory;
+		public Inventory[] inventories;
 
 		// Internal properties needed for Steam API.
 		protected string baseTradeURL;
@@ -64,7 +69,7 @@ namespace SteamBot
 		#endregion
 
 		#region Events
-		public delegate void ErrorHandler (string error);
+		public delegate void ErrorHandler (int eid);
 		public event ErrorHandler OnError;
 
 		public delegate void TimeoutHandler ();
@@ -90,6 +95,9 @@ namespace SteamBot
 
 		public delegate void NewVersionHandler();
 		public event NewVersionHandler OnNewVersion;
+
+		public delegate void CompleteHandler();
+		public event CompleteHandler OnComplete;
 		#endregion
 
 		public Trade (SteamID me, SteamID other, string sessionId, string token, string apiKey, TradeListener listener = null) {
@@ -97,6 +105,7 @@ namespace SteamBot
 			otherSID = other;
 
 			trades = new List<ulong>[] { MyTrade, OtherTrade };
+			Otrades = new List<ulong>[] { OMyTrade, OOtherTrade };
 
 			this.sessionId = sessionId;
 			steamLogin = token;
@@ -113,40 +122,45 @@ namespace SteamBot
 				PrintConsole ("Failed to connect to Steam!", ConsoleColor.Red);
 
 				if (OnError != null)
-					OnError("There was a problem connecting to Steam Trading.");
+					OnError(0);
 			}
 
 			try {
+				SendMessage("Fetching data");
+
 				// fetch the other player's inventory
 				OtherItems = GetInventory (otherSID);
 				if (OtherItems == null || OtherItems.success != "true") {
 					throw new Exception ("Could not fetch other player's inventory via Trading!");
 				}
-
+				
 				// fetch our inventory
 				MyItems = GetInventory (meSID);
 				if (MyItems == null || MyItems.success != "true") {
 					throw new Exception ("Could not fetch own inventory via Trading!");
 				}
-
+				
 				// fetch other player's inventory from the Steam API.
 				OtherInventory = Inventory.FetchInventory(otherSID.ConvertToUInt64(), apiKey);
 				if (OtherInventory == null) {
 					throw new Exception ("Could not fetch other player's inventory via Steam API!");
 				}
-
+				
 				// fetch our inventory from the Steam API.
 				MyInventory = Inventory.FetchInventory(meSID.ConvertToUInt64(), apiKey);
 				if (MyInventory == null) {
 					throw new Exception ("Could not fetch own inventory via Steam API!");
 				}
 
+				SendMessage("Ready");
+				inventories = new Inventory[] { MyInventory, OtherInventory };
+
 				if (OnAfterInit != null)
 					OnAfterInit();
 
 			} catch (Exception e) {
 				if (OnError != null)
-					OnError ("I'm having a problem getting one of our backpacks. The Steam Community might be down. Ensure your backpack isn't private.");
+					OnError(3);
 				Console.WriteLine (e);
 			}
 
@@ -173,18 +187,20 @@ namespace SteamBot
 							switch (evt.action) {
 								case 0:
 									trades[isBot ? 0 : 1].Add(evt.assetid);
+									Inventory.Item item = inventories[isBot ? 0 : 1].GetItem(evt.assetid);
+									Otrades[isBot ? 0 : 1].Add(item.OriginalId);
 									if (!isBot) {
-										Inventory.Item item = OtherInventory.GetItem(evt.assetid);
 										ItemInfo schemaItem = Util.getItemInfo(item.Defindex);
 										OnUserAddItem(schemaItem, item);
 									}
 									break;
 								case 1:
 									trades[isBot ? 0 : 1].Remove(evt.assetid);
+									Inventory.Item item2 = inventories[isBot ? 0 : 1].GetItem(evt.assetid);
+									Otrades[isBot ? 0 : 1].Add(item2.OriginalId);
 									if (!isBot) {
-										Inventory.Item item = OtherInventory.GetItem(evt.assetid);
-										ItemInfo schemaItem = Util.getItemInfo(item.Defindex);
-										OnUserRemoveItem(schemaItem, item);
+										ItemInfo schemaItem = Util.getItemInfo(item2.Defindex);
+										OnUserRemoveItem(schemaItem, item2);
 									}
 									break;
 								case 2:
@@ -240,8 +256,21 @@ namespace SteamBot
 						}
 					}
 				} else {
-					if (++exc >= 3) {
-						OnError("Trade cancelled");
+					if (status.trade_status == 3) {
+						//Other user cancelled
+						OnError(2);
+					} else if (status.trade_status == 4) {
+						//Other user timed out, unlikely as we have a built-in timeout
+						OnError(4);
+					} else if (status.trade_status == 5) {
+						//Trade failed
+						OnError(5);
+					} else if (status.trade_status == 1) {
+						//Success
+						OnComplete();
+					} else if (exc++ > 3) {
+						//More than 3 exceptions, something went wrong :/
+						OnError(1);
 					}
 				}
 
@@ -337,6 +366,7 @@ namespace SteamBot
 			OnUserSetReady += listener.OnUserSetReadyState;
 			OnUserAccept += listener.OnUserAccept;
 			OnNewVersion += listener.OnNewVersion;
+			OnComplete += listener.OnComplete;
 			listener.trade = this;
 		}
 
@@ -382,7 +412,7 @@ namespace SteamBot
 		{
 			public Trade trade;
 
-			public abstract void OnError (string error);
+			public abstract void OnError (int eid);
 
 			public abstract void OnTimeout ();
 
@@ -399,6 +429,12 @@ namespace SteamBot
 			public abstract void OnUserAccept ();
 
 			public abstract void OnNewVersion();
+
+			public abstract void OnComplete();
+
+			protected ulong getU(JValue v) {
+				return ((JValue) v).ToObject<ulong>();
+			}
 		}
 
 		#region JSON classes

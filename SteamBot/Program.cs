@@ -20,6 +20,7 @@ namespace SteamBot {
                     {
                         try
                         {
+							info.Admins = config.Admins;
                             new Bot(info, config.ApiKey);
                         }
                         catch (Exception e)

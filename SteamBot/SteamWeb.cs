@@ -21,6 +21,7 @@ namespace SteamBot {
 		public static HttpWebResponse Request(string url, string method, NameValueCollection data = null, CookieContainer cookies = null, bool ajax = true) {
 			HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
 
+			request.Expect = "";
 			request.Method = method;
 
 			request.Accept = "text/javascript, text/html, application/xml, text/xml, */*";

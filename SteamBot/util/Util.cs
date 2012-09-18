@@ -50,13 +50,14 @@ namespace SteamBot.util {
 			return JsonConvert.DeserializeObject(res);
 		}
 
-		public static bool isDebugMode = false;
-		public static void printConsole(String line, ConsoleColor color = ConsoleColor.White, bool isDebug = false) {
+		public static bool isDebugMode = true;
+		public static void printConsole(String line, Bot bot, ConsoleColor color = ConsoleColor.White, bool isDebug = false) {
 			Console.ForegroundColor = color;
 			if (isDebug && isDebugMode) {
-				Console.WriteLine(line);
-			} else {
-				Console.WriteLine(line);
+				Console.WriteLine("(" + bot.getBotId() + ") [DEBUG] " + line);
+			} else if (!isDebug) {
+				Console.WriteLine("(" + bot.getBotId() + ")         " + line);
+				bot.sql.update("INSERT INTO botLogs (botid, message, color) VALUES ('" + bot.getBotId() + "', '" + line + "', '" + ((int) color) + "')");
 			}
 			Console.ForegroundColor = ConsoleColor.White;
 		}
