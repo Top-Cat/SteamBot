@@ -94,7 +94,7 @@ namespace SteamBot.scrap {
 				}
 
 				if (gotItems) {
-					Util.printConsole("Sending trade request", bot, ConsoleColor.Yellow);
+					Util.printConsole("Items acquired, sending trade request", bot, ConsoleColor.Yellow);
 					bot.SteamTrade.Trade(currentTrader.getSteamId());
 					gotItems = false;
 				}

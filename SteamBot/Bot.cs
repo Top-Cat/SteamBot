@@ -44,7 +44,7 @@ namespace SteamBot {
 		public Dictionary<string, string> responses = new Dictionary<string,string>();
 
 		public Bot(Configuration.BotInfo config, string apiKey, bool debug = false) {
-			sql = new Sql(this);
+			sql = new Sql();
 
 			Username = config.Username;
 			Password = config.Password;
@@ -217,7 +217,9 @@ namespace SteamBot {
 				Util.printConsole("Trade Status: " + thing.Response, this, ConsoleColor.Magenta, true);
 
 				if (thing.Response == EEconTradeResponse.Accepted) {
-					Util.printConsole("Trade accepted!", this, ConsoleColor.Yellow);
+					if (!Program.bots.Contains(thing.OtherClient)) {
+						Util.printConsole("Trade accepted!", this, ConsoleColor.Yellow);
+					}
 				} else if (thing.Response == EEconTradeResponse.TargetAlreadyTrading) {
 					Util.printConsole("User is already trading!", this, ConsoleColor.Magenta);
 					SteamFriends.SendChatMessage(thing.OtherClient, EChatEntryType.ChatMsg, "You're at the top of the trade queue, but are in trade. We don't have all day :c");

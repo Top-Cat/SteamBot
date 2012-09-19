@@ -7,10 +7,8 @@ using SteamKit2;
 using SteamBot.util;
 using Newtonsoft.Json.Linq;
 
-namespace SteamBot
-{
-	public class Trade
-	{
+namespace SteamBot {
+	public class Trade {
 		#region Static
 		// Static properties
 		public static string SteamCommunityDomain = "steamcommunity.com";
@@ -44,12 +42,12 @@ namespace SteamBot
 		public int MaximumActionGap = 30;
 
 		// Items
-		public List<ulong> MyTrade = new List<ulong>();
-		public List<ulong> OtherTrade = new List<ulong>();
-		public List<ulong>[] trades;
-		public List<ulong> OMyTrade = new List<ulong>();
-		public List<ulong> OOtherTrade = new List<ulong>();
-		public List<ulong>[] Otrades;
+		public HashSet<ulong> MyTrade = new HashSet<ulong>();
+		public HashSet<ulong> OtherTrade = new HashSet<ulong>();
+		public HashSet<ulong>[] trades;
+		public HashSet<ulong> OMyTrade = new HashSet<ulong>();
+		public HashSet<ulong> OOtherTrade = new HashSet<ulong>();
+		public HashSet<ulong>[] Otrades;
 
 		public Inventory OtherInventory;
 		public Inventory MyInventory;
@@ -104,8 +102,8 @@ namespace SteamBot
 			meSID = me;
 			otherSID = other;
 
-			trades = new List<ulong>[] { MyTrade, OtherTrade };
-			Otrades = new List<ulong>[] { OMyTrade, OOtherTrade };
+			trades = new HashSet<ulong>[] { MyTrade, OtherTrade };
+			Otrades = new HashSet<ulong>[] { OMyTrade, OOtherTrade };
 
 			this.sessionId = sessionId;
 			steamLogin = token;
