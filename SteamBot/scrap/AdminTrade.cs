@@ -41,7 +41,7 @@ namespace SteamBot.scrap {
 			foreach (var child in trade.MyItems.rgInventory) {
 				Inventory.Item item = trade.MyInventory.GetItem(ulong.Parse(((JProperty) child).Name));
 
-				if (count.ContainsKey(item.Defindex) && count[item.Defindex].get() > 3) {
+				if (count.ContainsKey(item.Defindex) && count[item.Defindex].get() > 4) {
 					count[item.Defindex].decrement();
 
 					if (item.Defindex == 5000) {
