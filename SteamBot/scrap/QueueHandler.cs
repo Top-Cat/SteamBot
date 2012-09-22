@@ -116,7 +116,7 @@ namespace SteamBot.scrap {
 						}
 
 						if (reservedTmp.Count > 0) {
-							Util.printConsole("Need to aquire " + reservedTmp.Count + " items before trading", bot, ConsoleColor.Yellow);
+							Util.printConsole("Need to acquire " + reservedTmp.Count + " items before trading", bot, ConsoleColor.Yellow);
 							//We don't have all the items we need... :/
 							neededItems = reservedTmp;
 							needItems.Add(bot);
@@ -133,7 +133,9 @@ namespace SteamBot.scrap {
 								currentTrader = null;
 							}
 						} else {
-							throw e;
+							tradeEnded();
+							Util.printConsole("EEEK" + e.Message, bot, ConsoleColor.White, true);
+							//throw e;
 						}
 					}
 				}

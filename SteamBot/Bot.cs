@@ -184,7 +184,7 @@ namespace SteamBot {
 						string text = Util.removeArg0(callback.Message);
 						string[] pArgs = text.Split(' ');
 
-						response = Extensions.getCommand(args2[0].ToLower()).call(callback.Sender.ConvertToUInt64().ToString(), pArgs, text, this);
+						response = Extensions.getCommand(args2[0].ToLower()).call(callback.Sender, pArgs, text, this);
 					}
 					SteamFriends.SendChatMessage(callback.Sender, EChatEntryType.ChatMsg, response);
 				}
@@ -196,11 +196,18 @@ namespace SteamBot {
 			msg.Handle<SteamTrading.SessionStartCallback>(call => {
 				Trade.TradeListener listener = TradeListener;
 				if (Admins.Contains(call.OtherClient)) {
-					//listener = TradeListenerAdmin;
+					listener = TradeListenerAdmin;
 				} else if (Program.bots.Contains(call.OtherClient)) {
 					listener = TradeListenerInternal;
 				}
-				CurrentTrade = new Trade(SteamUser.SteamID, call.OtherClient, sessionId, token, apiKey, listener);
+				try {
+					CurrentTrade = new Trade(SteamUser.SteamID, call.OtherClient, sessionId, token, apiKey, listener);
+				} catch (Exception e) {
+					Util.printConsole(e.Message, this, ConsoleColor.White, true);
+					CurrentTrade = null;
+					Thread.Sleep(5000);
+					SteamTrade.Trade(call.OtherClient);
+				}
 			});
 
 			msg.Handle<SteamTrading.TradeProposedCallback>(thing => {

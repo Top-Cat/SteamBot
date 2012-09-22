@@ -1,21 +1,22 @@
-﻿using System;
+﻿using SteamKit2;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace SteamBot.command {
 	public class CommandInfo {
-		private String steamid;
+		private SteamID steamid;
 		private String[] args;
 		private String argsStr;
 
-		public CommandInfo(String steamid, String[] args, String argsStr) {
+		public CommandInfo(SteamID steamid, String[] args, String argsStr) {
 			this.steamid = steamid;
 			this.args = args;
 			this.argsStr = argsStr;
 		}
 
-		public String getSteamid() {
+		public SteamID getSteamid() {
 			return steamid;
 		}
 

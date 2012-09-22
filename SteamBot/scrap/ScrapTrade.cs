@@ -31,6 +31,14 @@ namespace SteamBot.scrap {
 
 		public override void OnError(int eid) {
 			Util.printConsole("Error(" + eid + ") during trade with user", bot, ConsoleColor.Red);
+			if (eid == 3) {
+				bot.SteamFriends.SendChatMessage(trade.otherSID, EChatEntryType.ChatMsg, "I had some issues fetching your inventory, can we try again?");
+				bot.SteamTrade.CancelTrade(trade.otherSID);
+			} else if (eid == 2) {
+				bot.queueHandler.tradeEnded();
+				bot.CurrentTrade = null;
+				return;
+			}
 			OnFinished(false);
 		}
 
@@ -52,6 +60,8 @@ namespace SteamBot.scrap {
 		}
 
 		public override void OnComplete() {
+			Util.printConsole("OnComplete called, maybe success?", bot, ConsoleColor.White, true);
+
 			int scrapReveived = 0;
 			Dictionary<ushort, DualMInt> itemTotals = new Dictionary<ushort, DualMInt>();
 			foreach (ulong child in trade.OtherTrade) {

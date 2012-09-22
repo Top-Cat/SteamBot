@@ -38,8 +38,8 @@ namespace SteamBot {
 		public string pollLock2 = "";
 		private byte exc = 0;
 
-		public int MaximumTradeTime = 300;
-		public int MaximumActionGap = 30;
+		public int MaximumTradeTime = 360;
+		public int MaximumActionGap = 60;
 
 		// Items
 		public HashSet<ulong> MyTrade = new HashSet<ulong>();
@@ -160,6 +160,7 @@ namespace SteamBot {
 				if (OnError != null)
 					OnError(3);
 				Console.WriteLine (e);
+				throw e;
 			}
 
 		}
@@ -249,7 +250,7 @@ namespace SteamBot {
 						if (untilActionTimeout <= 0 || untilTradeTimeout <= 0) {
 							if (OnTimeout != null)
 								OnTimeout();
-						} else if (untilActionTimeout <= 15 && untilActionTimeout % 5 == 0) {
+						} else if (untilActionTimeout <= 20 && untilActionTimeout % 5 == 0) {
 							SendMessage("Are You AFK? The trade will be canceled in " + untilActionTimeout + " seconds if you don't do something.");
 						}
 					}

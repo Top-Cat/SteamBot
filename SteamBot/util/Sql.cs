@@ -12,25 +12,31 @@ namespace SteamBot.util {
 
 		public Sql() {
 			myConnection = new MySqlConnection("");
-			myConnection.Open();
+			checkConnection();
 		}
 
-		private MySqlCommand createCommand(string sql) {
-			return new MySqlCommand(sql, myConnection);
+		private MySqlCommand createCommand(string sql, Dictionary<string, object> pars) {
+			MySqlCommand cmd = new MySqlCommand(sql, myConnection);
+			if (pars != null) {
+				foreach (string key in pars.Keys) {
+					cmd.Parameters.AddWithValue(key, pars[key]);
+				}
+			}
+			return cmd;
 		}
 
-		public int update(string sql) {
+		public int update(string sql, Dictionary<string, object> pars = null) {
 			lock (lck) {
 				checkConnection();
-				MySqlCommand cmd = createCommand(sql);
+				MySqlCommand cmd = createCommand(sql, pars);
 				return cmd.ExecuteNonQuery();
 			}
 		}
 
-		public int insert(string sql) {
+		public int insert(string sql, Dictionary<string, object> pars = null) {
 			lock (lck) {
 				checkConnection();
-				MySqlCommand cmd = createCommand(sql);
+				MySqlCommand cmd = createCommand(sql, pars);
 				int aff = cmd.ExecuteNonQuery();
 				return (int) cmd.LastInsertedId;
 			}
@@ -39,14 +45,17 @@ namespace SteamBot.util {
 		private void checkConnection() {
 			while (myConnection.State != System.Data.ConnectionState.Open) {
 				Thread.Sleep(1000);
-				myConnection.Open();
+				try {
+					myConnection.Open();
+				} catch (Exception) {
+				}
 			}
 		}
 
-		public List<object[]> query(string sql) {
+		public List<object[]> query(string sql, Dictionary<string, object> pars = null) {
 			lock (lck) {
 				checkConnection();
-				MySqlDataReader lastReader = createCommand(sql).ExecuteReader();
+				MySqlDataReader lastReader = createCommand(sql, pars).ExecuteReader();
 				List<object[]> response = new List<object[]>();
 				while (lastReader.Read()) {
 					object[] row = new object[lastReader.FieldCount];

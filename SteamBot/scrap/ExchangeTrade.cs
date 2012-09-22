@@ -119,7 +119,7 @@ namespace SteamBot.scrap {
 			bot.sql.update("UPDATE bots SET items = items + " + itemDiff + ", scrap = scrap + " + scrapDiff + " WHERE botid = '" + bot.getBotId() + "'");
 			if (bot.queueHandler.neededItems.Count > 0) {
 				QueueHandler.needItems.Add(bot);
-				Util.printConsole("Still need to aquire " + bot.queueHandler.neededItems.Count + " items before trading", bot, ConsoleColor.Yellow);
+				Util.printConsole("Still need to acquire " + bot.queueHandler.neededItems.Count + " items before trading", bot, ConsoleColor.Yellow);
 			} else if (bot.queueHandler.needItemsBool) {
 				bot.queueHandler.needItemsBool = false;
 				bot.queueHandler.gotItems = true;

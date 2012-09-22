@@ -64,7 +64,7 @@ namespace SteamBot.command {
 				}
 			}
 
-			dynamic json = Util.CreateSteamRequest(String.Format("http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=" + bot.apiKey + "&SteamID={0}&format=json",cmdInfo.getSteamid()),"GET");
+			dynamic json = Util.CreateSteamRequest(String.Format("http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=" + bot.apiKey + "&SteamID={0}&format=json",cmdInfo.getSteamid().ConvertToUInt64()),"GET");
 
 			foreach (dynamic item in json.result.items.item) {
 				weapons.Remove((int) item.defindex);

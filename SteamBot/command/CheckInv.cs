@@ -8,7 +8,7 @@ namespace SteamBot.command {
 	class CheckInv : Command {
 		public override String run(CommandInfo cmdInfo, Bot bot) {
 			String output = "Here are the items you have duplicates of:";
-			dynamic json = Util.CreateSteamRequest(String.Format("http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=" + bot.apiKey + "&SteamID={0}&format=json",cmdInfo.getSteamid()),"GET");
+			dynamic json = Util.CreateSteamRequest(String.Format("http://api.steampowered.com/ITFItems_440/GetPlayerItems/v0001/?key=" + bot.apiKey + "&SteamID={0}&format=json",cmdInfo.getSteamid().ConvertToUInt64()),"GET");
 		
 			int limit = cmdInfo.getArg(0, 2);
 			Dictionary<int, MutableInt> freq = new Dictionary<int, MutableInt>();
